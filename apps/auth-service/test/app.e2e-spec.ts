@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AuthServiceModule } from './../src/auth-service.module';
 
 describe('AuthServiceController (e2e)', () => {
@@ -15,10 +15,15 @@ describe('AuthServiceController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('/ (GET)', async () => {
+    const httpServer = app.getHttpServer();
+    const response = await request(httpServer).get('/');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Hello World!');
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });

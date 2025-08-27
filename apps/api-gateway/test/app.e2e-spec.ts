@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { ApiGatewayModule } from './../src/api-gateway.module';
 
-describe('ApiGatewayController (e2e)', () => {
+describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   beforeEach(async () => {
@@ -15,10 +15,15 @@ describe('ApiGatewayController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('/ (GET)', async () => {
+    const httpServer = app.getHttpServer();
+    const response = await request(httpServer).get('/');
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Hello World!');
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });

@@ -11,12 +11,15 @@ describe('AuthServiceController', () => {
       providers: [AuthServiceService],
     }).compile();
 
-    authServiceController = app.get<AuthServiceController>(AuthServiceController);
+    authServiceController = app.get<AuthServiceController>(
+      AuthServiceController,
+    );
   });
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(authServiceController.getHello()).toBe('Hello World!');
+      const result = authServiceController.getHello();
+      expect(result).toBe('Hello World!');
     });
   });
 });

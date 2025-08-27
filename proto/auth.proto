@@ -2,40 +2,126 @@ syntax = "proto3";
 
 package auth;
 
-
-service AuthService {
-  rpc Authenticate (Authentication) returns (UserMessage) {}
-  rpc Login (LoginRequest) returns (LoginResponse) {}
+// User management service
+service UserService {
   rpc Register (RegisterRequest) returns (RegisterResponse) {}
+  rpc Login (LoginRequest) returns (LoginResponse) {}
+  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse) {}
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
+  rpc GetUserProfile (GetUserProfileRequest) returns (UserProfile) {}
+  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UserProfile) {}
 }
 
-
-message Authentication {
-  string Authentication = 1;
+// Authentication service for token validation and management
+service AuthService {
+  rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
+  rpc RevokeToken (RevokeTokenRequest) returns (RevokeTokenResponse) {}
 }
 
-message LoginRequest {
-  string username = 1;
-  string password = 2;
-}
-
+// User registration
 message RegisterRequest {
   string username = 1;
-  string password = 2;
-  string email = 3;
-}
-
-
-message UserMessage {
-  string message = 1;
-}
-
-message LoginResponse {
-  string token = 1;
-  string message = 2;
+  string email = 2;
+  string password = 3;
+  string firstName = 4;
+  string lastName = 5;
 }
 
 message RegisterResponse {
   string userId = 1;
   string message = 2;
+  bool success = 3;
+  repeated string errors = 4;
+}
+
+// User login
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  string message = 3;
+  bool success = 4;
+  UserProfile user = 5;
+  repeated string errors = 6;
+}
+
+// Token validation
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool isValid = 1;
+  string userId = 2;
+  string message = 3;
+  repeated string errors = 4;
+}
+
+// Token refresh
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+  string message = 3;
+  bool success = 4;
+  repeated string errors = 4;
+}
+
+// Authentication
+message AuthenticateRequest {
+  string token = 1;
+}
+
+message AuthenticateResponse {
+  bool authenticated = 1;
+  string userId = 2;
+  string message = 3;
+  repeated string errors = 4;
+}
+
+// Token revocation
+message RevokeTokenRequest {
+  string token = 1;
+}
+
+message RevokeTokenResponse {
+  bool revoked = 1;
+  string message = 2;
+  repeated string errors = 3;
+}
+
+// User profile
+message GetUserProfileRequest {
+  string userId = 1;
+}
+
+message UpdateUserProfileRequest {
+  string userId = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string email = 4;
+}
+
+message UserProfile {
+  string userId = 1;
+  string username = 2;
+  string email = 3;
+  string firstName = 4;
+  string lastName = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+}
+
+// Common response wrapper for consistency
+message BaseResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string errors = 3;
 }
