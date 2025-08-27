@@ -20,8 +20,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserClientService } from '../services/user-client.service';
+import { ApiResponseDto } from '../dto/common.dto';
+import { ROUTE_USERS, API_BEARER_NAME } from '@app/common';
 import {
-  ApiResponseDto,
   CreateUserDto,
   GetUserByAuthUserIdDto,
   SearchUsersDto,
@@ -32,16 +33,32 @@ import {
 import { AuthGuard } from '../guards/auth.guard';
 
 @ApiTags('Users')
-@ApiBearerAuth('JWT-auth')
-@Controller('users')
+@ApiBearerAuth(API_BEARER_NAME)
+@Controller(ROUTE_USERS)
 export class UserController {
   constructor(private readonly userClient: UserClientService) {}
+
+  private toUserProfileResponse(u: {
+    authUserId: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  }): UserProfileResponseDto {
+    return {
+      authUserId: u.authUserId,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      profilePicture: u.profilePicture,
+    };
+  }
 
   @Get('health')
   @HttpCode(HttpStatus.OK)
   async health(): Promise<ApiResponseDto<{ message: string }>> {
     const result = await this.userClient.health();
-    return { success: true, message: result.message };
+    return { success: true, message: result.message } as ApiResponseDto<{
+      message: string;
+    }>;
   }
 
   @Post()
@@ -57,12 +74,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: {
-          authUserId: result.user.authUserId,
-          firstName: result.user.firstName,
-          lastName: result.user.lastName,
-          profilePicture: result.user.profilePicture,
-        },
+        data: this.toUserProfileResponse(result.user),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -81,12 +93,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: {
-          authUserId: result.user.authUserId,
-          firstName: result.user.firstName,
-          lastName: result.user.lastName,
-          profilePicture: result.user.profilePicture,
-        },
+        data: this.toUserProfileResponse(result.user),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -109,12 +116,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: {
-          authUserId: result.user.authUserId,
-          firstName: result.user.firstName,
-          lastName: result.user.lastName,
-          profilePicture: result.user.profilePicture,
-        },
+        data: this.toUserProfileResponse(result.user),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -131,11 +133,9 @@ export class UserController {
     const result = await this.userClient.deleteUser({
       authUserId: params.authUserId,
     });
-    return {
-      success: result.success,
-      message: result.message,
-      errors: result.errors,
-    };
+    return result.success
+      ? ({ success: true, message: result.message } as ApiResponseDto<null>)
+      : { success: false, message: result.message, errors: result.errors };
   }
 
   @Post(':authUserId/activate')
@@ -152,12 +152,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: {
-          authUserId: result.user.authUserId,
-          firstName: result.user.firstName,
-          lastName: result.user.lastName,
-          profilePicture: result.user.profilePicture,
-        },
+        data: this.toUserProfileResponse(result.user),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -177,12 +172,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: {
-          authUserId: result.user.authUserId,
-          firstName: result.user.firstName,
-          lastName: result.user.lastName,
-          profilePicture: result.user.profilePicture,
-        },
+        data: this.toUserProfileResponse(result.user),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -198,11 +188,9 @@ export class UserController {
     const result = await this.userClient.updateLastLogin({
       authUserId: params.authUserId,
     });
-    return {
-      success: result.success,
-      message: result.message,
-      errors: result.errors,
-    };
+    return result.success
+      ? ({ success: true, message: result.message } as ApiResponseDto<null>)
+      : { success: false, message: result.message, errors: result.errors };
   }
 
   @Get()
@@ -222,12 +210,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: result.users.map((u) => ({
-          authUserId: u.authUserId,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          profilePicture: u.profilePicture,
-        })),
+        data: result.users.map((u) => this.toUserProfileResponse(u)),
       };
     }
     return { success: false, message: result.message, errors: result.errors };
@@ -248,12 +231,7 @@ export class UserController {
       return {
         success: true,
         message: result.message,
-        data: result.users.map((u) => ({
-          authUserId: u.authUserId,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          profilePicture: u.profilePicture,
-        })),
+        data: result.users.map((u) => this.toUserProfileResponse(u)),
       };
     }
     return { success: false, message: result.message, errors: result.errors };

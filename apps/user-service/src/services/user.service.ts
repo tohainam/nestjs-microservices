@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Result, resultOk, resultErr } from '@app/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
@@ -22,7 +23,7 @@ export class UserService {
     authUserId: string,
     firstName: string,
     lastName: string,
-  ): Promise<User> {
+  ): Promise<Result<User>> {
     try {
       const user = new this.userModel({
         authUserId,
@@ -31,34 +32,29 @@ export class UserService {
         isActive: true,
         isEmailVerified: false,
       });
-
-      return await user.save();
+      const saved = await user.save();
+      return resultOk(saved);
     } catch (error) {
-      throw new Error(`Failed to create user: ${getErrorMessage(error)}`);
+      return resultErr([`Failed to create user: ${getErrorMessage(error)}`]);
     }
   }
 
-  async getUserByAuthUserId(authUserId: string): Promise<User> {
+  async getUserByAuthUserId(authUserId: string): Promise<Result<User>> {
     try {
       const user = await this.userModel.findOne({ authUserId });
       if (!user) {
-        throw new NotFoundException(
-          `User with authUserId ${authUserId} not found`,
-        );
+        return resultErr([`User with authUserId ${authUserId} not found`]);
       }
-      return user;
+      return resultOk(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error(`Failed to get user: ${getErrorMessage(error)}`);
+      return resultErr([`Failed to get user: ${getErrorMessage(error)}`]);
     }
   }
 
   async updateUserProfile(
     authUserId: string,
     updateData: Partial<User>,
-  ): Promise<User> {
+  ): Promise<Result<User>> {
     try {
       const user = await this.userModel.findOneAndUpdate(
         { authUserId },
@@ -67,32 +63,26 @@ export class UserService {
       );
 
       if (!user) {
-        throw new NotFoundException(
-          `User with authUserId ${authUserId} not found`,
-        );
+        return resultErr([`User with authUserId ${authUserId} not found`]);
       }
-
-      return user;
+      return resultOk(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error(
+      return resultErr([
         `Failed to update user profile: ${getErrorMessage(error)}`,
-      );
+      ]);
     }
   }
 
-  async deleteUser(authUserId: string): Promise<boolean> {
+  async deleteUser(authUserId: string): Promise<Result<boolean>> {
     try {
       const result = await this.userModel.deleteOne({ authUserId });
-      return result.deletedCount > 0;
+      return resultOk(result.deletedCount > 0);
     } catch (error) {
-      throw new Error(`Failed to delete user: ${getErrorMessage(error)}`);
+      return resultErr([`Failed to delete user: ${getErrorMessage(error)}`]);
     }
   }
 
-  async deactivateUser(authUserId: string): Promise<User> {
+  async deactivateUser(authUserId: string): Promise<Result<User>> {
     try {
       const user = await this.userModel.findOneAndUpdate(
         { authUserId },
@@ -101,21 +91,17 @@ export class UserService {
       );
 
       if (!user) {
-        throw new NotFoundException(
-          `User with authUserId ${authUserId} not found`,
-        );
+        return resultErr([`User with authUserId ${authUserId} not found`]);
       }
-
-      return user;
+      return resultOk(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error(`Failed to deactivate user: ${getErrorMessage(error)}`);
+      return resultErr([
+        `Failed to deactivate user: ${getErrorMessage(error)}`,
+      ]);
     }
   }
 
-  async activateUser(authUserId: string): Promise<User> {
+  async activateUser(authUserId: string): Promise<Result<User>> {
     try {
       const user = await this.userModel.findOneAndUpdate(
         { authUserId },
@@ -124,33 +110,32 @@ export class UserService {
       );
 
       if (!user) {
-        throw new NotFoundException(
-          `User with authUserId ${authUserId} not found`,
-        );
+        return resultErr([`User with authUserId ${authUserId} not found`]);
       }
-
-      return user;
+      return resultOk(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error(`Failed to activate user: ${getErrorMessage(error)}`);
+      return resultErr([`Failed to activate user: ${getErrorMessage(error)}`]);
     }
   }
 
-  async updateLastLogin(authUserId: string): Promise<void> {
+  async updateLastLogin(authUserId: string): Promise<Result<void>> {
     try {
       await this.userModel.updateOne(
         { authUserId },
         { $set: { lastLoginAt: new Date() } },
       );
+      return resultOk<void>(undefined as unknown as void);
     } catch (error) {
-      // Log error but don't throw as this is not critical
-      console.error(`Failed to update last login: ${getErrorMessage(error)}`);
+      return resultErr([
+        `Failed to update last login: ${getErrorMessage(error)}`,
+      ]);
     }
   }
 
-  async searchUsers(query: string, limit: number = 10): Promise<User[]> {
+  async searchUsers(
+    query: string,
+    limit: number = 10,
+  ): Promise<Result<User[]>> {
     try {
       const users = await this.userModel
         .find({
@@ -165,25 +150,23 @@ export class UserService {
           ],
         })
         .limit(limit);
-
-      return users;
+      return resultOk(users);
     } catch (error) {
-      throw new Error(`Failed to search users: ${getErrorMessage(error)}`);
+      return resultErr([`Failed to search users: ${getErrorMessage(error)}`]);
     }
   }
 
-  async getUsersByAuthUserIds(authUserIds: string[]): Promise<User[]> {
+  async getUsersByAuthUserIds(authUserIds: string[]): Promise<Result<User[]>> {
     try {
       const users = await this.userModel.find({
         authUserId: { $in: authUserIds },
         isActive: true,
       });
-
-      return users;
+      return resultOk(users);
     } catch (error) {
-      throw new Error(
+      return resultErr([
         `Failed to get users by authUserIds: ${getErrorMessage(error)}`,
-      );
+      ]);
     }
   }
 }

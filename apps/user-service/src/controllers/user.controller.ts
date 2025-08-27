@@ -1,6 +1,5 @@
 import { Controller } from '@nestjs/common';
 import { UserService } from '../services/user.service';
-import { User, UserDocument } from '../entities/user.entity';
 import { UserServiceControllerMethods } from '@app/common';
 import {
   CreateUserRequest,
@@ -22,7 +21,27 @@ import {
   GetUsersByAuthUserIdsRequest,
   GetUsersByAuthUserIdsResponse,
   HealthResponse,
-  UserProfile,
+} from '@app/common';
+import { isOk, toUserProfileRequired, type UserDoc } from '@app/common';
+import {
+  MSG_USER_CREATED,
+  MSG_USER_CREATE_FAILED,
+  MSG_USER_RETRIEVED,
+  MSG_USER_RETRIEVE_FAILED,
+  MSG_USER_UPDATED,
+  MSG_USER_UPDATE_FAILED,
+  MSG_USER_DELETED,
+  MSG_USER_DELETE_FAILED,
+  MSG_USER_ACTIVATED,
+  MSG_USER_ACTIVATE_FAILED,
+  MSG_USER_DEACTIVATED,
+  MSG_USER_DEACTIVATE_FAILED,
+  MSG_LAST_LOGIN_UPDATED,
+  MSG_LAST_LOGIN_UPDATE_FAILED,
+  MSG_USERS_FOUND,
+  MSG_USERS_FOUND_FAILED,
+  MSG_USERS_RETRIEVED,
+  MSG_USERS_RETRIEVE_FAILED,
 } from '@app/common';
 
 @Controller()
@@ -31,225 +50,189 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   async createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
-    try {
-      const user = await this.userService.createUser(
-        request.authUserId,
-        request.firstName,
-        request.lastName,
-      );
-
+    const res = await this.userService.createUser(
+      request.authUserId,
+      request.firstName,
+      request.lastName,
+    );
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'User profile created successfully',
-        user: this.mapToUserProfileRequired(user),
+        message: MSG_USER_CREATED,
+        user: toUserProfileRequired(res.value as unknown as UserDoc),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to create user profile',
-        user: null,
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_CREATE_FAILED,
+      user: null,
+      errors: res.error,
+    };
   }
 
   async getUserByAuthUserId(
     request: GetUserByAuthUserIdRequest,
   ): Promise<GetUserByAuthUserIdResponse> {
-    try {
-      const user = await this.userService.getUserByAuthUserId(
-        request.authUserId,
-      );
-
+    const res = await this.userService.getUserByAuthUserId(request.authUserId);
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'User profile retrieved successfully',
-        user: this.mapToUserProfileRequired(user),
+        message: MSG_USER_RETRIEVED,
+        user: toUserProfileRequired(res.value as unknown as UserDoc),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to retrieve user profile',
-        user: null,
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_RETRIEVE_FAILED,
+      user: null,
+      errors: res.error,
+    };
   }
 
   async updateUserProfile(
     request: UpdateUserProfileRequest,
   ): Promise<UpdateUserProfileResponse> {
-    try {
-      const user = await this.userService.updateUserProfile(
-        request.authUserId,
-        request,
-      );
-
+    const res = await this.userService.updateUserProfile(
+      request.authUserId,
+      request,
+    );
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'User profile updated successfully',
-        user: this.mapToUserProfileRequired(user),
+        message: MSG_USER_UPDATED,
+        user: toUserProfileRequired(res.value as unknown as UserDoc),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to update user profile',
-        user: null,
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_UPDATE_FAILED,
+      user: null,
+      errors: res.error,
+    };
   }
 
   async deleteUser(request: DeleteUserRequest): Promise<DeleteUserResponse> {
-    try {
-      const deleted = await this.userService.deleteUser(request.authUserId);
-
+    const res = await this.userService.deleteUser(request.authUserId);
+    if (isOk(res)) {
       return {
-        success: deleted,
-        message: deleted
-          ? 'User profile deleted successfully'
-          : 'User profile not found',
+        success: res.value,
+        message: res.value ? MSG_USER_DELETED : MSG_USER_DELETE_FAILED,
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to delete user profile',
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_DELETE_FAILED,
+      errors: res.error,
+    };
   }
 
   async activateUser(
     request: ActivateUserRequest,
   ): Promise<ActivateUserResponse> {
-    try {
-      const user = await this.userService.activateUser(request.authUserId);
-
+    const res = await this.userService.activateUser(request.authUserId);
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'User activated successfully',
-        user: this.mapToUserProfileRequired(user),
+        message: MSG_USER_ACTIVATED,
+        user: toUserProfileRequired(res.value as unknown as UserDoc),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to activate user',
-        user: null,
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_ACTIVATE_FAILED,
+      user: null,
+      errors: res.error,
+    };
   }
 
   async deactivateUser(
     request: DeactivateUserRequest,
   ): Promise<DeactivateUserResponse> {
-    try {
-      const user = await this.userService.deactivateUser(request.authUserId);
-
+    const res = await this.userService.deactivateUser(request.authUserId);
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'User deactivated successfully',
-        user: this.mapToUserProfileRequired(user),
+        message: MSG_USER_DEACTIVATED,
+        user: toUserProfileRequired(res.value as unknown as UserDoc),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to deactivate user',
-        user: null,
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USER_DEACTIVATE_FAILED,
+      user: null,
+      errors: res.error,
+    };
   }
 
   async updateLastLogin(
     request: UpdateLastLoginRequest,
   ): Promise<UpdateLastLoginResponse> {
-    try {
-      await this.userService.updateLastLogin(request.authUserId);
-
+    const res = await this.userService.updateLastLogin(request.authUserId);
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'Last login updated successfully',
+        message: MSG_LAST_LOGIN_UPDATED,
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to update last login',
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_LAST_LOGIN_UPDATE_FAILED,
+      errors: res.error,
+    };
   }
 
   async searchUsers(request: SearchUsersRequest): Promise<SearchUsersResponse> {
-    try {
-      const users = await this.userService.searchUsers(
-        request.query,
-        request.limit,
-      );
-
+    const res = await this.userService.searchUsers(
+      request.query,
+      request.limit,
+    );
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'Users found successfully',
-        users: users.map((user) => this.mapToUserProfileRequired(user)),
+        message: MSG_USERS_FOUND,
+        users: res.value.map((user) =>
+          toUserProfileRequired(user as unknown as UserDoc),
+        ),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to search users',
-        users: [],
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USERS_FOUND_FAILED,
+      users: [],
+      errors: res.error,
+    };
   }
 
   async getUsersByAuthUserIds(
     request: GetUsersByAuthUserIdsRequest,
   ): Promise<GetUsersByAuthUserIdsResponse> {
-    try {
-      const users = await this.userService.getUsersByAuthUserIds(
-        request.authUserIds,
-      );
-
+    const res = await this.userService.getUsersByAuthUserIds(
+      request.authUserIds,
+    );
+    if (isOk(res)) {
       return {
         success: true,
-        message: 'Users retrieved successfully',
-        users: users.map((user) => this.mapToUserProfileRequired(user)),
+        message: MSG_USERS_RETRIEVED,
+        users: res.value.map((user) =>
+          toUserProfileRequired(user as unknown as UserDoc),
+        ),
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return {
-        success: false,
-        message: 'Failed to retrieve users',
-        users: [],
-        errors: [errorMessage],
-      };
     }
+    return {
+      success: false,
+      message: MSG_USERS_RETRIEVE_FAILED,
+      users: [],
+      errors: res.error,
+    };
   }
 
   health(): HealthResponse {
@@ -258,37 +241,5 @@ export class UserController {
     };
   }
 
-  private mapToUserProfile(user: UserDocument | null): UserProfile | null {
-    if (!user) return null;
-
-    const userDoc = user as UserDocument & {
-      createdAt?: Date;
-      updatedAt?: Date;
-    };
-
-    return {
-      authUserId: user.authUserId,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      isActive: user.isActive,
-      isEmailVerified: user.isEmailVerified,
-      lastLoginAt: user.lastLoginAt?.toISOString(),
-      profilePicture: user.profilePicture,
-      bio: user.bio,
-      dateOfBirth: user.dateOfBirth?.toISOString(),
-      phoneNumber: user.phoneNumber,
-      address: user.address,
-      preferences: user.preferences,
-      createdAt: userDoc.createdAt?.toISOString() ?? new Date().toISOString(),
-      updatedAt: userDoc.updatedAt?.toISOString() ?? new Date().toISOString(),
-    };
-  }
-
-  private mapToUserProfileRequired(user: User | UserDocument): UserProfile {
-    const profile = this.mapToUserProfile(user as UserDocument);
-    if (!profile) {
-      throw new Error('Failed to map user profile');
-    }
-    return profile;
-  }
+  // Mapping handled by shared mapper in @app/common
 }

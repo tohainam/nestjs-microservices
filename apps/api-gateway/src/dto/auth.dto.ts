@@ -6,6 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+// ApiResponseDto moved to ../dto/common.dto
 
 export class RegisterDto {
   @ApiProperty({

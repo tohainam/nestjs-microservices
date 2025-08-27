@@ -22,7 +22,13 @@ import type {
   RevokeTokenResponse,
   HealthResponse,
 } from '@app/common';
-import { AUTH_SERVICE_NAME, USER_SERVICE_NAME } from '@app/common';
+import { getOrInitGrpcService } from '@app/shared-infra';
+import {
+  AUTH_SERVICE_NAME,
+  USER_SERVICE_NAME,
+  AUTH_GRPC_SERVICE,
+  USER_GRPC_SERVICE,
+} from '@app/common';
 
 @Injectable()
 export class AuthClientService implements OnModuleInit {
@@ -38,40 +44,59 @@ export class AuthClientService implements OnModuleInit {
 
   onModuleInit() {
     this.userService =
-      this.userClient.getService<UserServiceClient>('UserService');
+      this.userClient.getService<UserServiceClient>(USER_GRPC_SERVICE);
     this.authService =
-      this.authClient.getService<AuthServiceClient>('AuthService');
+      this.authClient.getService<AuthServiceClient>(AUTH_GRPC_SERVICE);
+  }
+
+  // Ensure clients are available even if called before onModuleInit
+  private getUserService(): UserServiceClient {
+    return getOrInitGrpcService<UserServiceClient>(
+      this.userService,
+      this.userClient,
+      USER_GRPC_SERVICE,
+      (svc) => (this.userService = svc),
+    );
+  }
+
+  private getAuthService(): AuthServiceClient {
+    return getOrInitGrpcService<AuthServiceClient>(
+      this.authService,
+      this.authClient,
+      AUTH_GRPC_SERVICE,
+      (svc) => (this.authService = svc),
+    );
   }
 
   async health(): Promise<HealthResponse> {
-    return firstValueFrom(this.authService.health({}));
+    return firstValueFrom(this.getAuthService().health({}));
   }
 
   // Auth Service Methods (via AuthService)
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    return firstValueFrom(this.authService.register(request));
+    return firstValueFrom(this.getAuthService().register(request));
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    return firstValueFrom(this.authService.login(request));
+    return firstValueFrom(this.getAuthService().login(request));
   }
 
   async validateToken(
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
-    return firstValueFrom(this.authService.validateToken(request));
+    return firstValueFrom(this.getAuthService().validateToken(request));
   }
 
   async refreshToken(
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> {
-    return firstValueFrom(this.authService.refreshToken(request));
+    return firstValueFrom(this.getAuthService().refreshToken(request));
   }
 
   async getUserProfile(request: GetUserProfileRequest): Promise<UserProfile> {
     const userRequest = { authUserId: request.userId };
     const response: GetUserByAuthUserIdResponse = await firstValueFrom(
-      this.userService.getUserByAuthUserId(userRequest),
+      this.getUserService().getUserByAuthUserId(userRequest),
     );
     if (!response.user) {
       throw new Error('User not found');
@@ -83,19 +108,19 @@ export class AuthClientService implements OnModuleInit {
     request: UpdateUserProfileRequest,
   ): Promise<UserProfile> {
     const response = await firstValueFrom(
-      this.userService.updateUserProfile(request) as any,
+      this.getUserService().updateUserProfile(request),
     );
-    return (response as any).user;
+    return response.user as UserProfile;
   }
 
   // Auth Service Methods
   async authenticate(
     request: AuthenticateRequest,
   ): Promise<AuthenticateResponse> {
-    return firstValueFrom(this.authService.authenticate(request));
+    return firstValueFrom(this.getAuthService().authenticate(request));
   }
 
   async revokeToken(request: RevokeTokenRequest): Promise<RevokeTokenResponse> {
-    return firstValueFrom(this.authService.revokeToken(request));
+    return firstValueFrom(this.getAuthService().revokeToken(request));
   }
 }

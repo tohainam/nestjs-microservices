@@ -1,11 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import type { Model } from 'mongoose';
 import { UserService } from '../src/services/user.service';
 import { User } from '../src/entities/user.entity';
+import { isOk } from '@app/common';
 
 describe('UserService', () => {
   let service: UserService;
-  let mockUserModel: jest.MockedFunction<any>;
+  type UserModelLike = {
+    new (...args: any[]): { save: jest.Mock };
+    findOne: jest.Mock;
+    findOneAndUpdate: jest.Mock;
+    deleteOne: jest.Mock;
+    updateOne: jest.Mock;
+    find: jest.Mock;
+  };
+  let mockUserModel: jest.Mocked<UserModelLike>;
 
   beforeEach(async () => {
     const mockUser = {
@@ -17,19 +27,21 @@ describe('UserService', () => {
       }),
     };
 
-    mockUserModel = jest.fn().mockImplementation(() => mockUser);
-    mockUserModel.findOne = jest.fn();
-    mockUserModel.findOneAndUpdate = jest.fn();
-    mockUserModel.deleteOne = jest.fn();
-    mockUserModel.updateOne = jest.fn();
-    mockUserModel.find = jest.fn();
+    const baseFactory = jest.fn().mockImplementation(() => mockUser);
+    mockUserModel = Object.assign(baseFactory, {
+      findOne: jest.fn(),
+      findOneAndUpdate: jest.fn(),
+      deleteOne: jest.fn(),
+      updateOne: jest.fn(),
+      find: jest.fn(),
+    }) as unknown as jest.Mocked<UserModelLike>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         {
           provide: getModelToken(User.name),
-          useValue: mockUserModel,
+          useValue: mockUserModel as unknown as Model<User>,
         },
       ],
     }).compile();
@@ -71,15 +83,20 @@ describe('UserService', () => {
       expect(mockUserModel.findOne).toHaveBeenCalledWith({
         authUserId: 'test-user-id',
       });
-      expect(result).toEqual(mockUser);
+      expect(isOk(result)).toBe(true);
+      if (isOk(result)) {
+        expect(result.value).toEqual(mockUser);
+      }
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it('should return error result when user not found', async () => {
       mockUserModel.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.getUserByAuthUserId('non-existent-id'),
-      ).rejects.toThrow();
+      const result = await service.getUserByAuthUserId('non-existent-id');
+      expect(isOk(result)).toBe(false);
+      if (!isOk(result)) {
+        expect(result.error[0]).toContain('not found');
+      }
     });
   });
 });

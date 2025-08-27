@@ -88,19 +88,7 @@ export class UsersByIdsDto {
   authUserIds: string[];
 }
 
-export class ApiResponseDto<T> {
-  @ApiProperty()
-  success: boolean;
-
-  @ApiProperty()
-  message: string;
-
-  @ApiProperty({ required: false })
-  data?: T;
-
-  @ApiProperty({ required: false, type: [String] })
-  errors?: string[];
-}
+// Moved to common dto: ApiResponseDto
 
 export class UserProfileResponseDto {
   @ApiProperty()

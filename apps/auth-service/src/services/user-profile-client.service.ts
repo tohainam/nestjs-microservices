@@ -1,6 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { getOrInitGrpcService } from '@app/shared-infra';
 import {
   USER_SERVICE_NAME,
   type UserServiceClient,
@@ -24,20 +25,21 @@ export class UserProfileClientService implements OnModuleInit {
       this.userClient.getService<UserServiceClient>('UserService');
   }
 
-  private ensureInitialized(): void {
-    if (!this.userService) {
-      this.userService =
-        this.userClient.getService<UserServiceClient>('UserService');
-    }
+  // Ensure client is available even if called before onModuleInit
+  private getUserService(): UserServiceClient {
+    return getOrInitGrpcService<UserServiceClient>(
+      this.userService,
+      this.userClient,
+      'UserService',
+      (svc) => (this.userService = svc),
+    );
   }
 
   async health(): Promise<HealthResponse> {
-    this.ensureInitialized();
-    return firstValueFrom(this.userService.health({} as HealthRequest));
+    return firstValueFrom(this.getUserService().health({} as HealthRequest));
   }
 
   async createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
-    this.ensureInitialized();
-    return firstValueFrom(this.userService.createUser(request));
+    return firstValueFrom(this.getUserService().createUser(request));
   }
 }
