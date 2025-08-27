@@ -1,7 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { UserService } from '../services/user.service';
-import { AuthServiceControllerMethods } from '@app/common';
 import { GrpcMethod } from '@nestjs/microservices';
+import { UserService } from '../services/user.service';
 import type {
   RegisterRequest,
   RegisterResponse,
@@ -17,24 +16,24 @@ import type {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @GrpcMethod('AuthService', 'register')
+  @GrpcMethod('AuthService', 'Register')
   async register(request: RegisterRequest): Promise<RegisterResponse> {
     return this.userService.register(request);
   }
 
-  @GrpcMethod('AuthService', 'login')
+  @GrpcMethod('AuthService', 'Login')
   async login(request: LoginRequest): Promise<LoginResponse> {
     return this.userService.login(request);
   }
 
-  @GrpcMethod('AuthService', 'validateToken')
+  @GrpcMethod('AuthService', 'ValidateToken')
   async validateToken(
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
     return this.userService.validateToken(request);
   }
 
-  @GrpcMethod('AuthService', 'refreshToken')
+  @GrpcMethod('AuthService', 'RefreshToken')
   async refreshToken(
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> {
