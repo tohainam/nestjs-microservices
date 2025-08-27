@@ -1,6 +1,46 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
+// Define nested schema types
+class Address {
+  @Prop()
+  street?: string;
+
+  @Prop()
+  city?: string;
+
+  @Prop()
+  state?: string;
+
+  @Prop()
+  country?: string;
+
+  @Prop()
+  zipCode?: string;
+}
+
+class NotificationSettings {
+  @Prop()
+  email?: boolean;
+
+  @Prop()
+  push?: boolean;
+
+  @Prop()
+  sms?: boolean;
+}
+
+class UserPreferences {
+  @Prop()
+  language?: string;
+
+  @Prop()
+  timezone?: string;
+
+  @Prop({ type: NotificationSettings })
+  notifications?: NotificationSettings;
+}
+
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
@@ -35,30 +75,15 @@ export class User {
   @Prop()
   phoneNumber?: string;
 
-  @Prop()
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
-  };
+  @Prop({ type: Address })
+  address?: Address;
 
-  @Prop()
-  preferences?: {
-    language?: string;
-    timezone?: string;
-    notifications?: {
-      email?: boolean;
-      push?: boolean;
-      sms?: boolean;
-    };
-  };
+  @Prop({ type: UserPreferences })
+  preferences?: UserPreferences;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Add indexes for better performance
-UserSchema.index({ authUserId: 1 });
+// Add indexes for better performance (authUserId already has unique index from @Prop)
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ firstName: 1, lastName: 1 });

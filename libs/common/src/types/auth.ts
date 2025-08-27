@@ -84,13 +84,21 @@ export interface HealthResponse {
   message: string;
 }
 
+// User profile requests (for API gateway)
+export interface GetUserProfileRequest {
+  userId: string;
+}
+
 // gRPC Method decorators
 export const AUTH_PACKAGE_NAME = 'auth';
+export const AUTH_SERVICE_NAME = 'AUTH_SERVICE';
 
 export interface AuthServiceClient {
   register(request: RegisterRequest): Observable<RegisterResponse>;
   login(request: LoginRequest): Observable<LoginResponse>;
-  validateToken(request: ValidateTokenRequest): Observable<ValidateTokenResponse>;
+  validateToken(
+    request: ValidateTokenRequest,
+  ): Observable<ValidateTokenResponse>;
   refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse>;
   authenticate(request: AuthenticateRequest): Observable<AuthenticateResponse>;
   revokeToken(request: RevokeTokenRequest): Observable<RevokeTokenResponse>;
@@ -98,13 +106,42 @@ export interface AuthServiceClient {
 }
 
 export interface AuthServiceController {
-  register(request: RegisterRequest): Promise<RegisterResponse> | Observable<RegisterResponse> | RegisterResponse;
-  login(request: LoginRequest): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
-  validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> | Observable<ValidateTokenResponse> | ValidateTokenResponse;
-  refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
-  authenticate(request: AuthenticateRequest): Promise<AuthenticateResponse> | Observable<AuthenticateResponse> | AuthenticateResponse;
-  revokeToken(request: RevokeTokenRequest): Promise<RevokeTokenResponse> | Observable<RevokeTokenResponse> | RevokeTokenResponse;
-  health(request: HealthRequest): Promise<HealthResponse> | Observable<HealthResponse> | HealthResponse;
+  register(
+    request: RegisterRequest,
+  ):
+    | Promise<RegisterResponse>
+    | Observable<RegisterResponse>
+    | RegisterResponse;
+  login(
+    request: LoginRequest,
+  ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
+  validateToken(
+    request: ValidateTokenRequest,
+  ):
+    | Promise<ValidateTokenResponse>
+    | Observable<ValidateTokenResponse>
+    | ValidateTokenResponse;
+  refreshToken(
+    request: RefreshTokenRequest,
+  ):
+    | Promise<RefreshTokenResponse>
+    | Observable<RefreshTokenResponse>
+    | RefreshTokenResponse;
+  authenticate(
+    request: AuthenticateRequest,
+  ):
+    | Promise<AuthenticateResponse>
+    | Observable<AuthenticateResponse>
+    | AuthenticateResponse;
+  revokeToken(
+    request: RevokeTokenRequest,
+  ):
+    | Promise<RevokeTokenResponse>
+    | Observable<RevokeTokenResponse>
+    | RevokeTokenResponse;
+  health(
+    request: HealthRequest,
+  ): Promise<HealthResponse> | Observable<HealthResponse> | HealthResponse;
 }
 
 export function AuthServiceControllerMethods() {
@@ -119,13 +156,27 @@ export function AuthServiceControllerMethods() {
       'health',
     ];
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod('AuthService', method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcMethod('AuthService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod('AuthService', method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcStreamMethod('AuthService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
   };
 }

@@ -1,25 +1,36 @@
-FROM node:18-alpine
+FROM node:24.6-alpine AS development
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package files
-COPY package*.json ./
+COPY package.json ./
 COPY pnpm-lock.yaml ./
+COPY tsconfig.json tsconfig.json
+COPY nest-cli.json nest-cli.json
 
-# Install pnpm
 RUN npm install -g pnpm
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+COPY apps/user-service apps/user-service
+COPY libs libs
 
-# Copy source code
-COPY . .
+RUN pnpm install -r 
 
-# Build the application
-RUN pnpm run build
+RUN pnpm run build user-service
 
-# Expose gRPC port (default gRPC port is 50051)
-EXPOSE 50051
+FROM node:24.6-alpine AS production
 
-# Start the gRPC microservice
-CMD ["pnpm", "run", "start:prod"]
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+
+RUN npm install -g pnpm
+
+RUN pnpm install --prod
+
+COPY --from=development /usr/src/app/dist ./dist
+COPY proto proto
+
+CMD ["node", "dist/apps/user-service/main"]

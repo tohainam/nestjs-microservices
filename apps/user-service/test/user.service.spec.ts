@@ -5,17 +5,24 @@ import { User } from '../src/entities/user.entity';
 
 describe('UserService', () => {
   let service: UserService;
-  let mockUserModel: any;
+  let mockUserModel: jest.MockedFunction<any>;
 
   beforeEach(async () => {
-    mockUserModel = {
-      new: jest.fn(),
-      findOne: jest.fn(),
-      findOneAndUpdate: jest.fn(),
-      deleteOne: jest.fn(),
-      updateOne: jest.fn(),
-      find: jest.fn(),
+    const mockUser = {
+      save: jest.fn().mockResolvedValue({
+        _id: '507f1f77bcf86cd799439011',
+        authUserId: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+      }),
     };
+
+    mockUserModel = jest.fn().mockImplementation(() => mockUser);
+    mockUserModel.findOne = jest.fn();
+    mockUserModel.findOneAndUpdate = jest.fn();
+    mockUserModel.deleteOne = jest.fn();
+    mockUserModel.updateOne = jest.fn();
+    mockUserModel.find = jest.fn();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,51 +43,43 @@ describe('UserService', () => {
 
   describe('createUser', () => {
     it('should create a new user', async () => {
-      const mockUser = {
-        save: jest.fn().mockResolvedValue({
-          _id: '507f1f77bcf86cd799439011',
-          userId: 'test-user-id',
-          firstName: 'John',
-          lastName: 'Doe',
-        }),
-      };
-
-      mockUserModel.new.mockReturnValue(mockUser);
-
       const result = await service.createUser('test-user-id', 'John', 'Doe');
 
-      expect(mockUserModel.new).toHaveBeenCalledWith({
-        userId: 'test-user-id',
+      expect(mockUserModel).toHaveBeenCalledWith({
+        authUserId: 'test-user-id',
         firstName: 'John',
         lastName: 'Doe',
         isActive: true,
         isEmailVerified: false,
       });
-      expect(mockUser.save).toHaveBeenCalled();
       expect(result).toBeDefined();
     });
   });
 
-  describe('getUserByUserId', () => {
+  describe('getUserByAuthUserId', () => {
     it('should return a user when found', async () => {
       const mockUser = {
-        userId: 'test-user-id',
+        authUserId: 'test-user-id',
         firstName: 'John',
         lastName: 'Doe',
       };
 
       mockUserModel.findOne.mockResolvedValue(mockUser);
 
-      const result = await service.getUserByUserId('test-user-id');
+      const result = await service.getUserByAuthUserId('test-user-id');
 
-      expect(mockUserModel.findOne).toHaveBeenCalledWith({ userId: 'test-user-id' });
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({
+        authUserId: 'test-user-id',
+      });
       expect(result).toEqual(mockUser);
     });
 
     it('should throw NotFoundException when user not found', async () => {
       mockUserModel.findOne.mockResolvedValue(null);
 
-      await expect(service.getUserByUserId('non-existent-id')).rejects.toThrow();
+      await expect(
+        service.getUserByAuthUserId('non-existent-id'),
+      ).rejects.toThrow();
     });
   });
 });

@@ -13,20 +13,23 @@ export class AuthIntegrationService {
   async createUserProfileAfterAuth(
     userId: string,
     firstName: string,
-    lastName: string
+    lastName: string,
   ) {
     try {
       // Create user profile in user-service
       const userProfile = await this.userService.createUser(
         userId,
         firstName,
-        lastName
+        lastName,
       );
 
       console.log(`User profile created for userId: ${userId}`);
       return userProfile;
     } catch (error) {
-      console.error(`Failed to create user profile for userId: ${userId}:`, error);
+      console.error(
+        `Failed to create user profile for userId: ${userId}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -39,7 +42,10 @@ export class AuthIntegrationService {
       await this.userService.updateLastLogin(userId);
       console.log(`Last login updated for userId: ${userId}`);
     } catch (error) {
-      console.error(`Failed to update last login for userId: ${userId}:`, error);
+      console.error(
+        `Failed to update last login for userId: ${userId}:`,
+        error,
+      );
       // Don't throw error as this is not critical for authentication
     }
   }
@@ -49,7 +55,7 @@ export class AuthIntegrationService {
    */
   async getUserProfileForAuth(userId: string) {
     try {
-      const userProfile = await this.userService.getUserByUserId(userId);
+      const userProfile = await this.userService.getUserByAuthUserId(userId);
       return userProfile;
     } catch (error) {
       console.error(`Failed to get user profile for userId: ${userId}:`, error);

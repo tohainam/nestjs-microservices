@@ -36,7 +36,7 @@ import {
   TokenValidationResponseDto,
 } from '../dto/auth.dto';
 import { AuthGuard } from '../guards/auth.guard';
-import { HealthResponse } from '@app/common';
+import { HealthResponse, UserProfile } from '@app/common';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -154,7 +154,11 @@ export class AuthController {
         data: {
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,
-          user: result.user,
+          user: {
+            userId: result.userId,
+            username: '',
+            email: '',
+          } as UserProfileResponseDto,
         },
       };
     } else {
@@ -203,7 +207,7 @@ export class AuthController {
         message: result.message,
         data: {
           accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
+          refreshToken: refreshTokenDto.refreshToken,
         },
       };
     } else {
@@ -246,10 +250,10 @@ export class AuthController {
     });
 
     return {
-      success: result.isValid,
+      success: result.valid,
       message: result.message,
       data: {
-        isValid: result.isValid,
+        isValid: result.valid,
         userId: result.userId,
       },
       errors: result.errors,
@@ -329,7 +333,7 @@ export class AuthController {
       return {
         success: true,
         message: 'User profile retrieved successfully',
-        data: userProfile,
+        data: mapToUserProfileResponseDto(userProfile),
       };
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
@@ -381,16 +385,15 @@ export class AuthController {
   ): Promise<ApiResponseDto<UserProfileResponseDto>> {
     try {
       const userProfile = await this.authClientService.updateUserProfile({
-        userId: params.userId,
+        authUserId: params.userId,
         firstName: updateProfileDto.firstName,
         lastName: updateProfileDto.lastName,
-        email: updateProfileDto.email,
       });
 
       return {
         success: true,
         message: 'User profile updated successfully',
-        data: userProfile,
+        data: mapToUserProfileResponseDto(userProfile),
       };
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error);
@@ -412,4 +415,19 @@ function getErrorMessage(error: unknown): string {
     return error;
   }
   return 'Unknown error';
+}
+
+// Helper function to map UserProfile to UserProfileResponseDto
+function mapToUserProfileResponseDto(
+  userProfile: UserProfile,
+): UserProfileResponseDto {
+  return {
+    userId: userProfile.authUserId,
+    username: '', // Not available in UserProfile
+    email: '', // Not available in UserProfile
+    firstName: userProfile.firstName,
+    lastName: userProfile.lastName,
+    createdAt: userProfile.createdAt,
+    updatedAt: userProfile.updatedAt,
+  };
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
@@ -139,7 +139,7 @@ export class UserService {
       }
 
       // Verify password
-      const isPasswordValid = await this.passwordService.verifyPassword(
+      const isPasswordValid = await this.passwordService.comparePassword(
         request.password,
         user.password,
       );
@@ -151,15 +151,21 @@ export class UserService {
           refreshToken: '',
           message: 'Invalid credentials',
           success: false,
-          errors: [getErrorMessage(error)],
+          errors: ['Invalid credentials'],
         };
       }
 
       const userId = safeObjectIdToString(user._id);
 
       // Generate tokens
-      const accessToken = this.jwtService.generateAccessToken(userId);
-      const refreshToken = this.jwtService.generateRefreshToken(userId);
+      const accessToken = this.jwtService.generateAccessToken({
+        userId,
+        username: user.username,
+      });
+      const refreshToken = this.jwtService.generateRefreshToken({
+        userId,
+        username: user.username,
+      });
 
       // Save refresh token
       user.refreshToken = refreshToken;
@@ -177,6 +183,7 @@ export class UserService {
       return {
         userId: '',
         accessToken: '',
+        refreshToken: '',
         message: 'Login failed',
         success: false,
         errors: [getErrorMessage(error)],
@@ -185,7 +192,9 @@ export class UserService {
   }
 
   // These methods are used internally for authentication purposes only
-  async validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> {
+  async validateToken(
+    request: ValidateTokenRequest,
+  ): Promise<ValidateTokenResponse> {
     try {
       const payload = this.jwtService.verifyAccessToken(request.token);
 
@@ -205,7 +214,7 @@ export class UserService {
           valid: false,
           userId: '',
           message: 'User not found or inactive',
-          errors: [getErrorMessage(error)],
+          errors: ['User not found or inactive'],
         };
       }
 
@@ -225,7 +234,9 @@ export class UserService {
     }
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> {
     try {
       const payload = this.jwtService.verifyRefreshToken(request.refreshToken);
 
@@ -241,20 +252,27 @@ export class UserService {
 
       // Check if user exists and refresh token matches
       const user = await this.userModel.findById(payload.userId);
-      if (!user || !user.isActive || user.refreshToken !== request.refreshToken) {
+      if (
+        !user ||
+        !user.isActive ||
+        user.refreshToken !== request.refreshToken
+      ) {
         return {
           userId: '',
           accessToken: '',
           message: 'Invalid refresh token or user not found',
           success: false,
-          errors: [getErrorMessage(error)],
+          errors: ['Invalid refresh token or user not found'],
         };
       }
 
       const userId = safeObjectIdToString(user._id);
 
       // Generate new access token
-      const accessToken = this.jwtService.generateAccessToken(userId);
+      const accessToken = this.jwtService.generateAccessToken({
+        userId,
+        username: user.username,
+      });
 
       return {
         userId,
@@ -278,20 +296,25 @@ export class UserService {
   async getUserById(userId: string): Promise<User | null> {
     try {
       return await this.userModel.findById(userId);
-    } catch (error) {
+    } catch {
       return null;
     }
   }
 
   // These methods are used internally for token management
-  async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
     try {
       await this.userModel.updateOne(
         { _id: userId },
-        { $set: { refreshToken } }
+        { $set: { refreshToken } },
       );
     } catch (error) {
-      console.error(`Failed to update refresh token: ${getErrorMessage(error)}`);
+      console.error(
+        `Failed to update refresh token: ${getErrorMessage(error)}`,
+      );
     }
   }
 
@@ -299,10 +322,12 @@ export class UserService {
     try {
       await this.userModel.updateOne(
         { _id: userId },
-        { $unset: { refreshToken: 1 } }
+        { $unset: { refreshToken: 1 } },
       );
     } catch (error) {
-      console.error(`Failed to revoke refresh token: ${getErrorMessage(error)}`);
+      console.error(
+        `Failed to revoke refresh token: ${getErrorMessage(error)}`,
+      );
     }
   }
 }

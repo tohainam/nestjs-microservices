@@ -28,7 +28,9 @@ export class AuthClientService implements OnModuleInit {
   private userService: UserServiceClient;
   private authService: AuthServiceClient;
 
-  constructor(@Inject(AUTH_SERVICE_NAME) private readonly client: ClientGrpc) {}
+  constructor(
+    @Inject(AUTH_SERVICE_NAME as string) private readonly client: ClientGrpc,
+  ) {}
 
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>('UserService');
@@ -39,35 +41,42 @@ export class AuthClientService implements OnModuleInit {
     return firstValueFrom(this.authService.health({}));
   }
 
-  // User Service Methods
+  // Auth Service Methods (via AuthService)
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    return firstValueFrom(this.userService.register(request));
+    return firstValueFrom(this.authService.register(request));
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    return firstValueFrom(this.userService.login(request));
+    return firstValueFrom(this.authService.login(request));
   }
 
   async validateToken(
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
-    return firstValueFrom(this.userService.validateToken(request));
+    return firstValueFrom(this.authService.validateToken(request));
   }
 
   async refreshToken(
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> {
-    return firstValueFrom(this.userService.refreshToken(request));
+    return firstValueFrom(this.authService.refreshToken(request));
   }
 
   async getUserProfile(request: GetUserProfileRequest): Promise<UserProfile> {
-    return firstValueFrom(this.userService.getUserProfile(request));
+    const userRequest = { authUserId: request.userId };
+    const response: { user: UserProfile } = await firstValueFrom(
+      this.userService.getUserProfile(userRequest),
+    );
+    return response.user;
   }
 
   async updateUserProfile(
     request: UpdateUserProfileRequest,
   ): Promise<UserProfile> {
-    return firstValueFrom(this.userService.updateUserProfile(request));
+    const response = await firstValueFrom(
+      this.userService.updateUserProfile(request) as any,
+    );
+    return (response as any).user;
   }
 
   // Auth Service Methods
