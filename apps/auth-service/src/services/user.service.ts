@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
 import { PasswordService } from './password.service';
 import { JwtService } from './jwt.service';
@@ -17,6 +17,47 @@ import {
   UserProfile,
   UpdateUserProfileRequest,
 } from '@app/common';
+
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Unknown error';
+}
+
+// Helper function to safely convert MongoDB ObjectId to string
+function safeObjectIdToString(id: unknown): string {
+  if (id instanceof Types.ObjectId) {
+    return id.toString();
+  }
+  if (typeof id === 'string') {
+    return id;
+  }
+  return '';
+}
+
+// Helper function to safely extract timestamps from MongoDB document
+function extractTimestamps(doc: UserDocument): {
+  createdAt: string;
+  updatedAt: string;
+} {
+  const now = new Date().toISOString();
+
+  // Type-safe access to timestamps
+  const docWithTimestamps = doc as UserDocument & {
+    createdAt?: Date;
+    updatedAt?: Date;
+  };
+
+  return {
+    createdAt: docWithTimestamps.createdAt?.toISOString() ?? now,
+    updatedAt: docWithTimestamps.updatedAt?.toISOString() ?? now,
+  };
+}
 
 @Injectable()
 export class UserService {
@@ -86,14 +127,13 @@ export class UserService {
       const savedUser = await user.save();
 
       return {
-        userId: savedUser._id.toString(),
+        userId: safeObjectIdToString(savedUser._id),
         message: 'User registered successfully',
         success: true,
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         userId: '',
         message: 'Registration failed',
@@ -116,7 +156,15 @@ export class UserService {
           refreshToken: '',
           message: 'Invalid credentials',
           success: false,
-          user: null,
+          user: {
+            userId: '',
+            username: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
           errors: ['Invalid username or password'],
         };
       }
@@ -128,7 +176,15 @@ export class UserService {
           refreshToken: '',
           message: 'Account is deactivated',
           success: false,
-          user: null,
+          user: {
+            userId: '',
+            username: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
           errors: ['Account is deactivated'],
         };
       }
@@ -145,19 +201,27 @@ export class UserService {
           refreshToken: '',
           message: 'Invalid credentials',
           success: false,
-          user: null,
+          user: {
+            userId: '',
+            username: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
           errors: ['Invalid username or password'],
         };
       }
 
       // Generate tokens
       const accessToken = this.jwtService.generateAccessToken({
-        userId: user._id.toString(),
+        userId: safeObjectIdToString(user._id),
         username: user.username,
       });
 
       const refreshToken = this.jwtService.generateRefreshToken({
-        userId: user._id.toString(),
+        userId: safeObjectIdToString(user._id),
         username: user.username,
       });
 
@@ -168,14 +232,15 @@ export class UserService {
       });
 
       // Create user profile
+      const timestamps = extractTimestamps(user);
       const userProfile: UserProfile = {
-        userId: user._id.toString(),
+        userId: safeObjectIdToString(user._id),
         username: user.username,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        createdAt: user.createdAt.toISOString(),
-        updatedAt: user.updatedAt.toISOString(),
+        createdAt: timestamps.createdAt,
+        updatedAt: timestamps.updatedAt,
       };
 
       return {
@@ -186,15 +251,22 @@ export class UserService {
         user: userProfile,
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         accessToken: '',
         refreshToken: '',
         message: 'Login failed',
         success: false,
-        user: null,
+        user: {
+          userId: '',
+          username: '',
+          email: '',
+          firstName: '',
+          lastName: '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
         errors: [errorMessage],
       };
     }
@@ -232,9 +304,8 @@ export class UserService {
         message: 'Token is valid',
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         isValid: false,
         userId: '',
@@ -274,12 +345,12 @@ export class UserService {
 
       // Generate new tokens
       const newAccessToken = this.jwtService.generateAccessToken({
-        userId: user._id.toString(),
+        userId: safeObjectIdToString(user._id),
         username: user.username,
       });
 
       const newRefreshToken = this.jwtService.generateRefreshToken({
-        userId: user._id.toString(),
+        userId: safeObjectIdToString(user._id),
         username: user.username,
       });
 
@@ -295,9 +366,8 @@ export class UserService {
         success: true,
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         accessToken: '',
         refreshToken: '',
@@ -314,14 +384,15 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
+    const timestamps = extractTimestamps(user);
     return {
-      userId: user._id.toString(),
+      userId: safeObjectIdToString(user._id),
       username: user.username,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
+      createdAt: timestamps.createdAt,
+      updatedAt: timestamps.updatedAt,
     };
   }
 
@@ -342,14 +413,15 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
+    const timestamps = extractTimestamps(user);
     return {
-      userId: user._id.toString(),
+      userId: safeObjectIdToString(user._id),
       username: user.username,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
+      createdAt: timestamps.createdAt,
+      updatedAt: timestamps.updatedAt,
     };
   }
 }

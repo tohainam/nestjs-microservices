@@ -114,7 +114,9 @@ export const AUTH_SERVICE_NAME = 'AuthService';
 export interface UserServiceClient {
   register(request: RegisterRequest): Observable<RegisterResponse>;
   login(request: LoginRequest): Observable<LoginResponse>;
-  validateToken(request: ValidateTokenRequest): Observable<ValidateTokenResponse>;
+  validateToken(
+    request: ValidateTokenRequest,
+  ): Observable<ValidateTokenResponse>;
   refreshToken(request: RefreshTokenRequest): Observable<RefreshTokenResponse>;
   getUserProfile(request: GetUserProfileRequest): Observable<UserProfile>;
   updateUserProfile(request: UpdateUserProfileRequest): Observable<UserProfile>;
@@ -124,24 +126,33 @@ export interface UserServiceClient {
 export interface UserServiceController {
   register(
     request: RegisterRequest,
-  ): Promise<RegisterResponse> | Observable<RegisterResponse> | RegisterResponse;
-  
+  ):
+    | Promise<RegisterResponse>
+    | Observable<RegisterResponse>
+    | RegisterResponse;
+
   login(
     request: LoginRequest,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse;
-  
+
   validateToken(
     request: ValidateTokenRequest,
-  ): Promise<ValidateTokenResponse> | Observable<ValidateTokenResponse> | ValidateTokenResponse;
-  
+  ):
+    | Promise<ValidateTokenResponse>
+    | Observable<ValidateTokenResponse>
+    | ValidateTokenResponse;
+
   refreshToken(
     request: RefreshTokenRequest,
-  ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
-  
+  ):
+    | Promise<RefreshTokenResponse>
+    | Observable<RefreshTokenResponse>
+    | RefreshTokenResponse;
+
   getUserProfile(
     request: GetUserProfileRequest,
   ): Promise<UserProfile> | Observable<UserProfile> | UserProfile;
-  
+
   updateUserProfile(
     request: UpdateUserProfileRequest,
   ): Promise<UserProfile> | Observable<UserProfile> | UserProfile;
@@ -157,25 +168,31 @@ export interface AuthServiceClient {
 export interface AuthServiceController {
   authenticate(
     request: AuthenticateRequest,
-  ): Promise<AuthenticateResponse> | Observable<AuthenticateResponse> | AuthenticateResponse;
-  
+  ):
+    | Promise<AuthenticateResponse>
+    | Observable<AuthenticateResponse>
+    | AuthenticateResponse;
+
   revokeToken(
     request: RevokeTokenRequest,
-  ): Promise<RevokeTokenResponse> | Observable<RevokeTokenResponse> | RevokeTokenResponse;
+  ):
+    | Promise<RevokeTokenResponse>
+    | Observable<RevokeTokenResponse>
+    | RevokeTokenResponse;
 }
 
 // User Service Controller Methods
 export function UserServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
-      'register', 
-      'login', 
-      'validateToken', 
-      'refreshToken', 
-      'getUserProfile', 
-      'updateUserProfile'
+      'register',
+      'login',
+      'validateToken',
+      'refreshToken',
+      'getUserProfile',
+      'updateUserProfile',
     ];
-    
+
     for (const method of grpcMethods) {
       const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
@@ -187,7 +204,7 @@ export function UserServiceControllerMethods() {
         descriptor,
       );
     }
-    
+
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
@@ -207,7 +224,7 @@ export function UserServiceControllerMethods() {
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = ['authenticate', 'revokeToken'];
-    
+
     for (const method of grpcMethods) {
       const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
@@ -219,7 +236,7 @@ export function AuthServiceControllerMethods() {
         descriptor,
       );
     }
-    
+
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(

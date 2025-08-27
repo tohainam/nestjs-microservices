@@ -8,6 +8,17 @@ import {
   RevokeTokenResponse,
 } from '@app/common';
 
+// Helper function to safely extract error message
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'Unknown error';
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -39,9 +50,8 @@ export class AuthService {
         message: 'Authentication successful',
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         authenticated: false,
         userId: '',
@@ -70,9 +80,8 @@ export class AuthService {
         message: 'Token revoked successfully',
         errors: [],
       };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       return {
         revoked: false,
         message: 'Token revocation failed',
