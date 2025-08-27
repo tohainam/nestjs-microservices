@@ -39,6 +39,7 @@ import { AuthGuard } from '../guards/auth.guard';
 import { HealthResponse, UserProfile } from '@app/common';
 
 @ApiTags('Authentication')
+@ApiBearerAuth('JWT-auth')
 @Controller('auth')
 @ApiProduces('application/json')
 @ApiConsumes('application/json')

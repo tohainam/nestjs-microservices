@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
 import { PasswordService } from './password.service';
 import { JwtService } from './jwt.service';
+import { UserProfileClientService } from './user-profile-client.service';
 import {
   RegisterRequest,
   RegisterResponse,
@@ -43,6 +44,7 @@ export class UserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private readonly passwordService: PasswordService,
     private readonly jwtService: JwtService,
+    private readonly userProfileClient: UserProfileClientService,
   ) {}
 
   // This method is used internally for authentication purposes only
@@ -100,8 +102,20 @@ export class UserService {
       const savedUser = await user.save();
       const userId = safeObjectIdToString(savedUser._id);
 
-      // TODO: Call user-service to create user profile
-      // This should be done asynchronously or through a message queue
+      // Create user profile via gRPC (fire-and-forget semantics, but await for now)
+      try {
+        await this.userProfileClient.createUser({
+          authUserId: userId,
+          firstName: request.firstName,
+          lastName: request.lastName,
+        });
+      } catch (profileError) {
+        // Log and continue; registration of auth user succeeded
+        console.error(
+          'Failed to create user profile:',
+          getErrorMessage(profileError),
+        );
+      }
 
       return {
         userId,

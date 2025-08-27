@@ -6,10 +6,13 @@ import {
   AUTH_PACKAGE_NAME,
   AUTH_SERVICE_NAME,
   USER_PACKAGE_NAME,
+  USER_SERVICE_NAME,
 } from '@app/common';
 import { AuthController } from './controllers/auth.controller';
+import { UserController } from './controllers/user.controller';
 import { HealthController } from './controllers/health.controller';
 import { AuthClientService } from './services/auth-client.service';
+import { UserClientService } from './services/user-client.service';
 
 @Module({
   imports: [
@@ -34,7 +37,7 @@ import { AuthClientService } from './services/auth-client.service';
         inject: [ConfigService],
       },
       {
-        name: 'USER_SERVICE',
+        name: USER_SERVICE_NAME as string,
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => ({
           transport: Transport.GRPC,
@@ -48,7 +51,7 @@ import { AuthClientService } from './services/auth-client.service';
       },
     ]),
   ],
-  controllers: [AuthController, HealthController],
-  providers: [AuthClientService],
+  controllers: [AuthController, HealthController, UserController],
+  providers: [AuthClientService, UserClientService],
 })
 export class ApiGatewayModule {}
