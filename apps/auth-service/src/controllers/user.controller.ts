@@ -10,9 +10,6 @@ import {
   ValidateTokenResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
-  GetUserProfileRequest,
-  UserProfile,
-  UpdateUserProfileRequest,
 } from '@app/common';
 
 @Controller()
@@ -38,15 +35,5 @@ export class UserController {
     request: RefreshTokenRequest,
   ): Promise<RefreshTokenResponse> {
     return this.userService.refreshToken(request);
-  }
-
-  async getUserProfile(request: GetUserProfileRequest): Promise<UserProfile> {
-    return this.userService.getUserProfile(request);
-  }
-
-  async updateUserProfile(
-    request: UpdateUserProfileRequest,
-  ): Promise<UserProfile> {
-    return this.userService.updateUserProfile(request);
   }
 }
