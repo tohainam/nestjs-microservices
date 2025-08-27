@@ -1,0 +1,25 @@
+services:
+  api-gateway:
+    container_name: biz-fseai-api-gateway
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+      target: development
+    command: pnpm run start:dev api-gateway
+    env_file:
+      - ./apps/api-gateway/.env
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/usr/src/app
+  auth-service:
+    container_name: biz-fseai-auth-service
+    build:
+      context: .
+      dockerfile: ./apps/auth-service/Dockerfile
+      target: development
+    command: pnpm run start:dev auth-service
+    env_file:
+      - ./apps/auth-service/.env
+    volumes:
+      - .:/usr/src/app
