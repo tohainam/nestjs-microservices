@@ -20,11 +20,11 @@ describe('PasswordService', () => {
     it('should hash a password', async () => {
       const password = 'TestPassword123!';
       const hashedPassword = await service.hashPassword(password);
-      
+
       expect(hashedPassword).toBeDefined();
       expect(typeof hashedPassword).toBe('string');
       expect(hashedPassword).not.toBe(password);
-      
+
       // Should follow the format: iterations:salt:hash
       const parts = hashedPassword.split(':');
       expect(parts).toHaveLength(3);
@@ -37,7 +37,7 @@ describe('PasswordService', () => {
       const password = 'TestPassword123!';
       const hash1 = await service.hashPassword(password);
       const hash2 = await service.hashPassword(password);
-      
+
       expect(hash1).not.toBe(hash2);
     });
   });
@@ -46,7 +46,7 @@ describe('PasswordService', () => {
     it('should return true for correct password', async () => {
       const password = 'TestPassword123!';
       const hashedPassword = await service.hashPassword(password);
-      
+
       const result = await service.comparePassword(password, hashedPassword);
       expect(result).toBe(true);
     });
@@ -55,15 +55,18 @@ describe('PasswordService', () => {
       const password = 'TestPassword123!';
       const wrongPassword = 'WrongPassword123!';
       const hashedPassword = await service.hashPassword(password);
-      
-      const result = await service.comparePassword(wrongPassword, hashedPassword);
+
+      const result = await service.comparePassword(
+        wrongPassword,
+        hashedPassword,
+      );
       expect(result).toBe(false);
     });
 
     it('should return false for malformed hash', async () => {
       const password = 'TestPassword123!';
       const malformedHash = 'invalid:hash:format';
-      
+
       const result = await service.comparePassword(password, malformedHash);
       expect(result).toBe(false);
     });
@@ -85,7 +88,7 @@ describe('PasswordService', () => {
         'NoSpecial123', // no special characters
       ];
 
-      weakPasswords.forEach(password => {
+      weakPasswords.forEach((password) => {
         const result = service.validatePassword(password);
         expect(result).toBe(false);
       });
@@ -106,7 +109,7 @@ describe('PasswordService', () => {
 
     it('should generate a password with all required character types', () => {
       const password = service.generateSecurePassword(20);
-      
+
       expect(/[A-Z]/.test(password)).toBe(true); // uppercase
       expect(/[a-z]/.test(password)).toBe(true); // lowercase
       expect(/\d/.test(password)).toBe(true); // numbers

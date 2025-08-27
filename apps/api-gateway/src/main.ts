@@ -41,7 +41,7 @@ async function bootstrap() {
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Biz FSEAI API Gateway')
-    .setDescription("API Gateway for the Biz FSEAI Microservices")
+    .setDescription('API Gateway for the Biz FSEAI Microservices')
     .setVersion('1.0.0')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addTag('Authentication', 'User authentication and authorization endpoints')
@@ -63,7 +63,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, {
     extraModels: [],
     deepScanRoutes: true,
-    operationIdFactory: (_controllerKey: string, methodKey: string) => methodKey,
+    operationIdFactory: (_controllerKey: string, methodKey: string) =>
+      methodKey,
   });
 
   if (document.paths) {
@@ -74,8 +75,6 @@ async function bootstrap() {
     });
     document.paths = pathsWithPrefix;
   }
-
-
 
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {

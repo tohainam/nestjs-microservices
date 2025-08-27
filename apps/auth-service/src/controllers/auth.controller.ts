@@ -23,7 +23,7 @@ export class AuthController {
     return this.authService.authenticate(request);
   }
 
-  async revokeToken(request: RevokeTokenRequest): Promise<RevokeTokenResponse> {
+  revokeToken(request: RevokeTokenRequest): RevokeTokenResponse {
     return this.authService.revokeToken(request);
   }
 }

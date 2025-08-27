@@ -98,8 +98,7 @@ export interface RevokeTokenResponse {
   errors: string[];
 }
 
-export interface HealthRequest {
-}
+export interface HealthRequest {}
 
 // Health check response
 export interface HealthResponse {

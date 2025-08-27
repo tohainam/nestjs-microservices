@@ -17,14 +17,14 @@ import { AuthClientService } from './services/auth-client.service';
     }),
     ClientsModule.registerAsync([
       {
-        name: AUTH_SERVICE_NAME,
+        name: AUTH_SERVICE_NAME as string,
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => ({
           transport: Transport.GRPC,
           options: {
-            package: AUTH_PACKAGE_NAME,
+            package: AUTH_PACKAGE_NAME as string,
             protoPath: join(process.cwd(), 'proto/auth.proto'),
-            url: configService.getOrThrow('AUTH_GRPC_URL'),
+            url: configService.getOrThrow<string>('AUTH_GRPC_URL'),
           },
         }),
         inject: [ConfigService],
@@ -34,4 +34,4 @@ import { AuthClientService } from './services/auth-client.service';
   controllers: [AuthController, HealthController],
   providers: [AuthClientService],
 })
-export class ApiGatewayModule { }
+export class ApiGatewayModule {}

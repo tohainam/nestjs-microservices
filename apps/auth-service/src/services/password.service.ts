@@ -12,23 +12,33 @@ export class PasswordService {
     return new Promise((resolve, reject) => {
       // Generate a random salt
       const salt = crypto.randomBytes(this.saltLength);
-      
+
       // Use PBKDF2 to hash the password
-      crypto.pbkdf2(password, salt, this.iterations, this.hashLength, this.algorithm, (err, derivedKey) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        
-        // Combine salt and hash with iterations count
-        // Format: iterations:salt:hash (all in hex)
-        const result = `${this.iterations.toString(16)}:${salt.toString('hex')}:${derivedKey.toString('hex')}`;
-        resolve(result);
-      });
+      crypto.pbkdf2(
+        password,
+        salt,
+        this.iterations,
+        this.hashLength,
+        this.algorithm,
+        (err, derivedKey) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          // Combine salt and hash with iterations count
+          // Format: iterations:salt:hash (all in hex)
+          const result = `${this.iterations.toString(16)}:${salt.toString('hex')}:${derivedKey.toString('hex')}`;
+          resolve(result);
+        },
+      );
     });
   }
 
-  async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
+  async comparePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       try {
         // Parse the stored hash format: iterations:salt:hash
@@ -43,17 +53,24 @@ export class PasswordService {
         const storedHash = parts[2];
 
         // Hash the provided password with the same parameters
-        crypto.pbkdf2(password, salt, iterations, this.hashLength, this.algorithm, (err, derivedKey) => {
-          if (err) {
-            reject(err);
-            return;
-          }
+        crypto.pbkdf2(
+          password,
+          salt,
+          iterations,
+          this.hashLength,
+          this.algorithm,
+          (err, derivedKey) => {
+            if (err) {
+              reject(err);
+              return;
+            }
 
-          // Compare the hashes
-          const providedHash = derivedKey.toString('hex');
-          resolve(storedHash === providedHash);
-        });
-      } catch (error) {
+            // Compare the hashes
+            const providedHash = derivedKey.toString('hex');
+            resolve(storedHash === providedHash);
+          },
+        );
+      } catch {
         resolve(false);
       }
     });
@@ -78,21 +95,25 @@ export class PasswordService {
 
   // Helper method to generate a secure random password
   generateSecurePassword(length: number = 16): string {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const charset =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let password = '';
-    
+
     // Ensure at least one character from each required category
     password += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]; // Upper case
     password += 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)]; // Lower case
     password += '0123456789'[Math.floor(Math.random() * 10)]; // Number
     password += '!@#$%^&*'[Math.floor(Math.random() * 8)]; // Special char
-    
+
     // Fill the rest with random characters
     for (let i = 4; i < length; i++) {
       password += charset[Math.floor(Math.random() * charset.length)];
     }
-    
+
     // Shuffle the password to avoid predictable patterns
-    return password.split('').sort(() => Math.random() - 0.5).join('');
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 }
