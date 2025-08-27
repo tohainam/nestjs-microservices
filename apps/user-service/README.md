@@ -12,10 +12,11 @@ This service manages:
 
 ## Architecture
 
-The User Service is designed as a microservice that:
+The User Service is designed as a gRPC microservice that:
 - Stores user profile data separately from authentication data
 - Uses the `userId` from the Auth Service as its primary identifier
-- Provides RESTful APIs for user management operations
+- Exposes gRPC endpoints for user management operations
+- All requests go through the API Gateway, not directly to this service
 
 ## Database Schema
 
@@ -32,27 +33,32 @@ The User entity contains:
 - `address`: Physical address details
 - `preferences`: User preferences and settings
 
-## API Endpoints
+## gRPC Endpoints
 
 ### User Management
-- `POST /api/v1/users` - Create a new user profile
-- `GET /api/v1/users/:userId` - Get user profile by ID
-- `PUT /api/v1/users/:userId` - Update user profile
-- `DELETE /api/v1/users/:userId` - Delete user profile
+- `CreateUser` - Create a new user profile
+- `GetUserByUserId` - Get user profile by ID
+- `UpdateUserProfile` - Update user profile
+- `DeleteUser` - Delete user profile
 
 ### User Status
-- `PUT /api/v1/users/:userId/activate` - Activate user account
-- `PUT /api/v1/users/:userId/deactivate` - Deactivate user account
-- `PUT /api/v1/users/:userId/last-login` - Update last login timestamp
+- `ActivateUser` - Activate user account
+- `DeactivateUser` - Deactivate user account
+- `UpdateLastLogin` - Update last login timestamp
 
 ### User Search
-- `GET /api/v1/users/search?q=query&limit=10` - Search users by name
-- `POST /api/v1/users/batch` - Get multiple users by IDs
+- `SearchUsers` - Search users by name
+- `GetUsersByIds` - Get multiple users by IDs
+
+### Health Check
+- `Health` - Service health status
+
+**Note**: These are gRPC endpoints that are exposed through the API Gateway. Clients should not call this service directly.
 
 ## Environment Variables
 
 - `MONGODB_URI`: MongoDB connection string
-- `PORT`: Service port (default: 3002)
+- `USER_GRPC_URL`: gRPC service URL (default: 0.0.0.0:50051)
 
 ## Running the Service
 
@@ -61,10 +67,13 @@ The User entity contains:
 pnpm install
 
 # Run in development mode
-pnpm run start:dev
+pnpm run start:user:dev
 
 # Run in production mode
-pnpm run start:prod
+pnpm run start:user:prod
+
+# Build the service
+pnpm run build:user
 
 # Run tests
 pnpm run test

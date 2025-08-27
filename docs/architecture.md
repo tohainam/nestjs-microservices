@@ -131,9 +131,9 @@ Both services require:
 - `JWT_ACCESS_EXPIRES_IN`: Access token expiration time
 
 ### Port Configuration
-- Auth Service: Port 3001 (default)
-- User Service: Port 3002 (default)
-- API Gateway: Port 3000 (default)
+- Auth Service: gRPC Port 50050 (default)
+- User Service: gRPC Port 50051 (default)
+- API Gateway: HTTP Port 8000 (default)
 
 ## Deployment
 
@@ -145,8 +145,8 @@ docker build -t auth-service apps/auth-service/
 docker build -t user-service apps/user-service/
 
 # Run services
-docker run -p 3001:3001 auth-service
-docker run -p 3002:3002 user-service
+docker run -p 50050:50050 auth-service
+docker run -p 50051:50051 user-service
 ```
 
 ### Development
@@ -239,15 +239,14 @@ pnpm run build:user
 
 ### Debug Commands
 ```bash
-# Check service status
-curl http://localhost:3001/health
-curl http://localhost:3002/health
+# Check service status (through API Gateway)
+curl http://localhost:8000/health
 
 # View service logs
 docker logs <service-container-id>
 
-# Test service endpoints
-curl -X POST http://localhost:3001/register -H "Content-Type: application/json" -d '{"username":"test","email":"test@example.com","password":"password123"}'
+# Test service endpoints (through API Gateway)
+curl -X POST http://localhost:8000/auth/register -H "Content-Type: application/json" -d '{"username":"test","email":"test@example.com","password":"password123"}'
 ```
 
 ## Conclusion

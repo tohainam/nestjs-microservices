@@ -18,8 +18,8 @@ COPY . .
 # Build the application
 RUN pnpm run build
 
-# Expose port
-EXPOSE 3002
+# Expose gRPC port (default gRPC port is 50051)
+EXPOSE 50051
 
-# Start the application
+# Start the gRPC microservice
 CMD ["pnpm", "run", "start:prod"]

@@ -99,7 +99,7 @@ MONGODB_URI=mongodb://localhost:27017/auth_db
 JWT_SECRET=your-super-secret-jwt-key
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-PORT=3001
+AUTH_GRPC_URL=0.0.0.0:50050
 EOF
         print_status "Created auth-service .env.example"
     fi
@@ -109,7 +109,7 @@ EOF
         cat > apps/user-service/.env.example << EOF
 # User Service Environment Variables
 MONGODB_URI=mongodb://localhost:27017/user_db
-PORT=3002
+USER_GRPC_URL=0.0.0.0:50051
 EOF
         print_status "Created user-service .env.example"
     fi
@@ -165,7 +165,8 @@ main() {
     print_status "1. Copy .env.example to .env in both services"
     print_status "2. Update environment variables with your values"
     print_status "3. Start services with: pnpm run start:auth:dev & pnpm run start:user:dev"
-    print_status "4. Test the services with the provided endpoints"
+    print_status "4. All requests go through the API Gateway, not directly to services"
+    print_status "5. Services communicate via gRPC on ports 50050 (auth) and 50051 (user)"
     print_status ""
     print_status "For more information, see docs/architecture.md"
 }

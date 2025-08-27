@@ -17,6 +17,7 @@ services:
       - mongodb2
       - mongodb3
       - auth-service
+      - user-service
     networks:
       - biz-fseai-microservice
 
@@ -29,6 +30,28 @@ services:
     command: pnpm run start:dev auth-service
     env_file:
       - ./apps/auth-service/.env
+    ports:
+      - '50050:50050'
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    networks:
+      - biz-fseai-microservice
+
+  user-service:
+    container_name: biz-fseai-user-service
+    build:
+      context: .
+      dockerfile: ./apps/user-service/Dockerfile
+      target: development
+    command: pnpm run start:dev user-service
+    env_file:
+      - ./apps/user-service/.env
+    ports:
+      - '50051:50051'
     volumes:
       - .:/usr/src/app
     depends_on:
