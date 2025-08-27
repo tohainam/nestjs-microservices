@@ -10,6 +10,7 @@
 
 ### 2. **Auth Service** (`apps/auth-service/`)
 - **gRPC Only**: No HTTP endpoints exposed, only gRPC communication
+- **Internal Access Only**: No external port exposure - isolated from external network
 - **User Entity**: MongoDB schema with Mongoose ODM
 - **Services**:
   - `UserService`: Business logic for user operations
@@ -21,7 +22,8 @@
 
 ### 3. **API Gateway** (`apps/api-gateway/`)
 - **HTTP Endpoints**: RESTful API for external clients
-- **gRPC Client**: Communicates with auth-service via gRPC
+- **Single Entry Point**: All external requests must go through this service
+- **gRPC Client**: Communicates with auth-service via gRPC (internal network)
 - **Controllers**:
   - `AuthController`: Authentication endpoints
   - `HealthController`: Health check endpoint
@@ -39,11 +41,20 @@
 - **Token Validation**: Every protected request validates tokens
 - **Input Validation**: DTO validation using class-validator
 - **Password Hashing**: bcrypt with 12 salt rounds
+- **Network Isolation**: Auth service not accessible from external network
+- **Single Entry Point**: All external requests must go through API Gateway
 
 ### 6. **Database Integration**
 - **MongoDB**: Replica set configuration
 - **Mongoose**: ODM with proper schemas and indexes
 - **User Collection**: Comprehensive user data storage
+
+### 7. **Configuration Management**
+- **@nestjs/config**: Advanced configuration management
+- **forRootAsync**: Async configuration loading
+- **getOrThrow**: Environment validation ensuring required values
+- **Configuration Caching**: Improved performance
+- **Multiple Environment Files**: Support for .env and .env.local
 
 ## 🚀 API Endpoints
 
@@ -61,14 +72,21 @@
 
 ## 🔧 Configuration
 
+### Configuration Management
+- **Async Loading**: Services wait for configuration to be loaded
+- **Environment Validation**: `getOrThrow` ensures required values are present
+- **Configuration Caching**: Improved performance with config caching
+- **Environment File Support**: Multiple .env file support (.env, .env.local)
+
 ### Environment Variables
 - **Auth Service**: MongoDB URI, gRPC URL, JWT secrets
 - **API Gateway**: HTTP port, gRPC client URL
-- **Docker**: Proper port mapping and networking
+- **Docker**: Proper port mapping and networking (auth-service internal only)
 
 ### Dependencies
 - **Core**: NestJS, gRPC, MongoDB
 - **Security**: JWT, bcrypt, class-validator
+- **Configuration**: @nestjs/config with async loading
 - **Development**: TypeScript, ESLint, Prettier
 
 ## 📁 File Structure
@@ -77,7 +95,7 @@
 ├── proto/
 │   └── auth.proto                 # gRPC service definitions
 ├── apps/
-│   ├── auth-service/              # Authentication microservice
+│   ├── auth-service/              # Authentication microservice (internal only)
 │   │   ├── src/
 │   │   │   ├── controllers/       # gRPC controllers
 │   │   │   ├── services/          # Business logic
@@ -85,7 +103,7 @@
 │   │   │   ├── dto/               # Data validation
 │   │   │   └── main.ts            # gRPC server
 │   │   └── .env                   # Environment config
-│   └── api-gateway/               # HTTP API Gateway
+│   └── api-gateway/               # HTTP API Gateway (external entry point)
 │       ├── src/
 │       │   ├── controllers/       # HTTP controllers
 │       │   ├── services/          # gRPC client
@@ -95,7 +113,7 @@
 │       └── .env                   # Environment config
 ├── libs/
 │   └── common/                    # Shared types and interfaces
-├── docker-compose.yml             # Service orchestration
+├── docker-compose.yml             # Service orchestration (auth-service internal)
 ├── package.json                   # Dependencies
 └── README.md                      # Documentation
 ```
@@ -113,18 +131,28 @@
 - Custom JWT implementation
 - Secure password handling
 - Input validation
+- **Network isolation** - Auth service not externally accessible
+- **Single entry point** - All requests through API Gateway
 
 ### 3. **Maintainability**
 - Clear separation of concerns
 - Type-safe gRPC communication
 - Comprehensive error handling
 - Well-documented code
+- **Async configuration loading** - Better startup reliability
 
 ### 4. **Performance**
 - gRPC binary protocol
 - Efficient token validation
 - Database indexing
 - Minimal network overhead
+- **Configuration caching** - Improved performance
+
+### 5. **Configuration Management**
+- **Async configuration loading** - Services wait for config
+- **Environment validation** - Required values enforced
+- **Configuration caching** - Performance optimization
+- **Multiple environment files** - Flexible configuration
 
 ## 🚀 Getting Started
 
@@ -179,6 +207,8 @@ docker-compose up -d
 8. **Role-Based Access Control**: User permissions
 9. **API Versioning**: Version control for APIs
 10. **Monitoring**: Health metrics and alerts
+11. **Configuration Validation**: Schema validation for environment variables
+12. **Secrets Management**: External secrets management integration
 
 ## ✅ Implementation Status
 
@@ -192,6 +222,10 @@ docker-compose up -d
 - [x] HTTP API Gateway
 - [x] Authentication guards
 - [x] Input validation DTOs
+- [x] **Async configuration management**
+- [x] **Environment validation with getOrThrow**
+- [x] **Network isolation for auth-service**
+- [x] **Single entry point architecture**
 - [x] Environment configuration
 - [x] Docker orchestration
 - [x] Build system
@@ -207,7 +241,10 @@ The authentication flow has been successfully implemented with:
 - **gRPC communication** - Efficient inter-service communication
 - **Scalable architecture** - Easy to extend and maintain
 - **Security best practices** - Password hashing, token validation
+- **Network isolation** - Auth service not externally accessible
+- **Single entry point** - All external requests through API Gateway
+- **Advanced configuration** - @nestjs/config with forRootAsync and getOrThrow
 - **Comprehensive testing** - Automated setup and API testing
 - **Production ready** - Docker orchestration and environment config
 
-The system is ready for development and can be easily extended with additional features and services.
+The system is ready for development and can be easily extended with additional features and services. The new configuration approach provides better reliability and the network isolation enhances security by ensuring all external requests must go through the API Gateway.

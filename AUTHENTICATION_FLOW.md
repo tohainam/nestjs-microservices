@@ -7,13 +7,20 @@ This document describes the authentication flow implementation using NestJS micr
 The system consists of two main services:
 
 1. **API Gateway** - Exposes HTTP endpoints and communicates with auth-service via gRPC
-2. **Auth Service** - Handles authentication logic and exposes gRPC endpoints only
+2. **Auth Service** - Handles authentication logic and exposes gRPC endpoints only (internal access only)
 
 ## Service Communication
 
-- **API Gateway** ↔ **Auth Service**: gRPC communication
+- **API Gateway** ↔ **Auth Service**: gRPC communication (internal network only)
 - **Auth Service** ↔ **MongoDB**: Direct connection using Mongoose
-- **External Clients** ↔ **API Gateway**: HTTP REST API
+- **External Clients** ↔ **API Gateway**: HTTP REST API (only external access point)
+
+## Security Architecture
+
+- **Auth Service**: No external port exposure - only accessible via internal Docker network
+- **API Gateway**: Single point of entry for all external requests
+- **gRPC Communication**: Internal service-to-service communication only
+- **Network Isolation**: Auth service isolated from external access
 
 ## Authentication Flow
 
@@ -22,7 +29,7 @@ The system consists of two main services:
 ```
 Client → API Gateway (POST /auth/register)
   ↓
-API Gateway → Auth Service (gRPC Register)
+API Gateway → Auth Service (gRPC Register) [Internal Network]
   ↓
 Auth Service → MongoDB (Create User)
   ↓
@@ -57,7 +64,7 @@ POST /auth/register
 ```
 Client → API Gateway (POST /auth/login)
   ↓
-API Gateway → Auth Service (gRPC Login)
+API Gateway → Auth Service (gRPC Login) [Internal Network]
   ↓
 Auth Service → MongoDB (Validate Credentials)
   ↓
@@ -101,7 +108,7 @@ POST /auth/login
 ```
 Client → API Gateway (POST /auth/validate)
   ↓
-API Gateway → Auth Service (gRPC ValidateToken)
+API Gateway → Auth Service (gRPC ValidateToken) [Internal Network]
   ↓
 Auth Service → JWT Verification
   ↓
@@ -113,7 +120,7 @@ Response: Token validity and user ID
 ```
 Client → API Gateway (POST /auth/refresh)
   ↓
-API Gateway → Auth Service (gRPC RefreshToken)
+API Gateway → Auth Service (gRPC RefreshToken) [Internal Network]
   ↓
 Auth Service → JWT Verification (Refresh Token)
   ↓
@@ -127,7 +134,7 @@ Response: New Access Token and Refresh Token
 ```
 Client → API Gateway (Protected Endpoint)
   ↓
-API Gateway → Auth Guard → Auth Service (gRPC Authenticate)
+API Gateway → Auth Guard → Auth Service (gRPC Authenticate) [Internal Network]
   ↓
 Auth Service → JWT Verification
   ↓
@@ -158,8 +165,19 @@ If Invalid: Return 401 Unauthorized
 3. **Token Validation**: Every protected request validates the token
 4. **Password Requirements**: Minimum 8 characters with complexity requirements
 5. **Input Validation**: DTO validation using class-validator
+6. **Network Isolation**: Auth service not accessible from external network
+7. **Single Entry Point**: All external requests must go through API Gateway
 
 ## Configuration
+
+### Configuration Management
+
+The system uses `@nestjs/config` with `forRootAsync` for advanced configuration:
+
+- **Async Configuration**: Services wait for configuration to be loaded
+- **Environment Validation**: `getOrThrow` ensures required values are present
+- **Configuration Caching**: Improved performance with config caching
+- **Environment File Support**: Multiple .env file support (.env, .env.local)
 
 ### Environment Variables
 
@@ -170,12 +188,15 @@ AUTH_GRPC_URL=0.0.0.0:5000
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
+NODE_ENV=development
+PORT=5000
 ```
 
 **API Gateway (.env):**
 ```env
 PORT=8000
 AUTH_GRPC_URL=auth-service:5000
+NODE_ENV=development
 ```
 
 ## Database Schema
@@ -207,14 +228,19 @@ The current architecture is designed for easy scaling:
 2. **Stateless Services**: Both services are stateless and can be horizontally scaled
 3. **Database**: MongoDB replica set for high availability
 4. **gRPC**: Efficient binary protocol for inter-service communication
-5. **Load Balancing**: Can easily add load balancers in front of services
+5. **Load Balancing**: Can easily add load balancers in front of API Gateway
+6. **Network Isolation**: Auth service protected from external access
+7. **Configuration Management**: Async configuration loading for better startup reliability
 
 ## Future Enhancements
 
-1. **Rate Limiting**: Implement rate limiting for auth endpoints
+1. **Rate Limiting**: Protect against brute force attacks
 2. **OAuth Integration**: Add social login providers
 3. **Two-Factor Authentication**: Implement 2FA using TOTP
 4. **Audit Logging**: Log all authentication events
 5. **Token Blacklisting**: Implement proper token revocation
 6. **Email Verification**: Add email verification flow
 7. **Password Reset**: Implement forgot password functionality
+8. **Configuration Validation**: Add schema validation for environment variables
+9. **Secrets Management**: Integrate with external secrets management systems
+10. **Health Checks**: Enhanced health monitoring for all services

@@ -29,8 +29,6 @@ services:
     command: pnpm run start:dev auth-service
     env_file:
       - ./apps/auth-service/.env
-    ports:
-      - '5000:5000'
     volumes:
       - .:/usr/src/app
     depends_on:

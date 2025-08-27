@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { AUTH_PACKAGE_NAME } from '@app/common';
@@ -13,16 +13,23 @@ import { AuthClientService } from './services/auth-client.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '.env.local'],
+      cache: true,
+      expandVariables: true,
     }),
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: AUTH_PACKAGE_NAME,
-        transport: Transport.GRPC,
-        options: {
-          package: AUTH_PACKAGE_NAME,
-          protoPath: join(__dirname, '../../../proto/auth.proto'),
-          url: process.env.AUTH_GRPC_URL || 'localhost:5000',
-        },
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.GRPC,
+          options: {
+            package: AUTH_PACKAGE_NAME,
+            protoPath: join(__dirname, '../../../proto/auth.proto'),
+            url: configService.getOrThrow<string>('AUTH_GRPC_URL'),
+          },
+        }),
+        inject: [ConfigService],
       },
     ]),
   ],
