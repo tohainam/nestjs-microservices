@@ -1,17 +1,33 @@
 import { Module } from '@nestjs/common';
-import { AuthServiceController } from './auth-service.controller';
-import { AuthServiceService } from './auth-service.service';
 import { ConfigModule } from '@nestjs/config';
-import { MongoDatabaseModule } from '@app/shared-infra';
+import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthServiceModule } from '@app/common';
+import { User, UserSchema } from './entities/user.entity';
+import { UserController } from './controllers/user.controller';
+import { AuthController } from './controllers/auth.controller';
+import { UserService } from './services/user.service';
+import { AuthService } from './services/auth.service';
+import { JwtService } from './services/jwt.service';
+import { PasswordService } from './services/password.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongoDatabaseModule,
+    MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost:27017/auth-service'),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+    ]),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET || 'your-secret-key',
+      signOptions: { expiresIn: '15m' },
+    }),
+    AuthServiceModule,
   ],
-  controllers: [AuthServiceController],
-  providers: [AuthServiceService],
+  controllers: [UserController, AuthController],
+  providers: [UserService, AuthService, JwtService, PasswordService],
 })
 export class AuthServiceModule {}
