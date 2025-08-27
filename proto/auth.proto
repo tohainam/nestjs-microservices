@@ -2,18 +2,12 @@ syntax = "proto3";
 
 package auth;
 
-// User management service
-service UserService {
+// Authentication service for user registration and login
+service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse) {}
   rpc Login (LoginRequest) returns (LoginResponse) {}
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse) {}
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse) {}
-  rpc GetUserProfile (GetUserProfileRequest) returns (UserProfile) {}
-  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UserProfile) {}
-}
-
-// Authentication service for token validation and management
-service AuthService {
   rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
   rpc RevokeToken (RevokeTokenRequest) returns (RevokeTokenResponse) {}
   rpc Health (HealthRequest) returns (HealthResponse) {}
@@ -102,28 +96,6 @@ message RevokeTokenResponse {
   bool revoked = 1;
   string message = 2;
   repeated string errors = 3;
-}
-
-// User profile
-message GetUserProfileRequest {
-  string userId = 1;
-}
-
-message UpdateUserProfileRequest {
-  string userId = 1;
-  string firstName = 2;
-  string lastName = 3;
-  string email = 4;
-}
-
-message UserProfile {
-  string userId = 1;
-  string username = 2;
-  string email = 3;
-  string firstName = 4;
-  string lastName = 5;
-  string createdAt = 6;
-  string updatedAt = 7;
 }
 
 // Common response wrapper for consistency

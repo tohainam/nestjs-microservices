@@ -4,8 +4,8 @@ import { UserServiceControllerMethods } from '@app/common';
 import {
   CreateUserRequest,
   CreateUserResponse,
-  GetUserByUserIdRequest,
-  GetUserByUserIdResponse,
+  GetUserByAuthUserIdRequest,
+  GetUserByAuthUserIdResponse,
   UpdateUserProfileRequest,
   UpdateUserProfileResponse,
   DeleteUserRequest,
@@ -18,8 +18,8 @@ import {
   UpdateLastLoginResponse,
   SearchUsersRequest,
   SearchUsersResponse,
-  GetUsersByIdsRequest,
-  GetUsersByIdsResponse,
+  GetUsersByAuthUserIdsRequest,
+  GetUsersByAuthUserIdsResponse,
   HealthRequest,
   HealthResponse,
 } from '@app/common';
@@ -32,7 +32,7 @@ export class UserController {
   async createUser(request: CreateUserRequest): Promise<CreateUserResponse> {
     try {
       const user = await this.userService.createUser(
-        request.userId,
+        request.authUserId,
         request.firstName,
         request.lastName
       );
@@ -53,9 +53,9 @@ export class UserController {
     }
   }
 
-  async getUserByUserId(request: GetUserByUserIdRequest): Promise<GetUserByUserIdResponse> {
+  async getUserByAuthUserId(request: GetUserByAuthUserIdRequest): Promise<GetUserByAuthUserIdResponse> {
     try {
-      const user = await this.userService.getUserByUserId(request.userId);
+      const user = await this.userService.getUserByAuthUserId(request.authUserId);
 
       return {
         success: true,
@@ -75,7 +75,7 @@ export class UserController {
 
   async updateUserProfile(request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> {
     try {
-      const user = await this.userService.updateUserProfile(request.userId, request);
+      const user = await this.userService.updateUserProfile(request.authUserId, request);
 
       return {
         success: true,
@@ -95,7 +95,7 @@ export class UserController {
 
   async deleteUser(request: DeleteUserRequest): Promise<DeleteUserResponse> {
     try {
-      const deleted = await this.userService.deleteUser(request.userId);
+      const deleted = await this.userService.deleteUser(request.authUserId);
 
       return {
         success: deleted,
@@ -113,7 +113,7 @@ export class UserController {
 
   async activateUser(request: ActivateUserRequest): Promise<ActivateUserResponse> {
     try {
-      const user = await this.userService.activateUser(request.userId);
+      const user = await this.userService.activateUser(request.authUserId);
 
       return {
         success: true,
@@ -133,7 +133,7 @@ export class UserController {
 
   async deactivateUser(request: DeactivateUserRequest): Promise<DeactivateUserResponse> {
     try {
-      const user = await this.userService.deactivateUser(request.userId);
+      const user = await this.userService.deactivateUser(request.authUserId);
 
       return {
         success: true,
@@ -152,7 +152,7 @@ export class UserController {
 
   async updateLastLogin(request: UpdateLastLoginRequest): Promise<UpdateLastLoginResponse> {
     try {
-      await this.userService.updateLastLogin(request.userId);
+      await this.userService.updateLastLogin(request.authUserId);
 
       return {
         success: true,
@@ -188,9 +188,9 @@ export class UserController {
     }
   }
 
-  async getUsersByIds(request: GetUsersByIdsRequest): Promise<GetUsersByIdsResponse> {
+  async getUsersByAuthUserIds(request: GetUsersByAuthUserIdsRequest): Promise<GetUsersByAuthUserIdsResponse> {
     try {
-      const users = await this.userService.getUsersByIds(request.userIds);
+      const users = await this.userService.getUsersByAuthUserIds(request.authUserIds);
 
       return {
         success: true,
@@ -218,7 +218,7 @@ export class UserController {
     if (!user) return null;
 
     return {
-      userId: user.userId,
+      authUserId: user.authUserId,
       firstName: user.firstName,
       lastName: user.lastName,
       isActive: user.isActive,

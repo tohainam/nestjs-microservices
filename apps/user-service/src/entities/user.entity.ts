@@ -6,7 +6,7 @@ export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true })
-  userId: string; // This will be the ID from auth-service
+  authUserId: string; // This will be the ID from auth-service
 
   @Prop({ required: true })
   firstName: string;
@@ -59,6 +59,6 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Add indexes for better performance
-UserSchema.index({ userId: 1 });
+UserSchema.index({ authUserId: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ firstName: 1, lastName: 1 });

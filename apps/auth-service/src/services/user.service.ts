@@ -45,6 +45,7 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // This method is used internally for authentication purposes only
   async register(request: RegisterRequest): Promise<RegisterResponse> {
     try {
       // Check if user already exists
@@ -99,6 +100,9 @@ export class UserService {
       const savedUser = await user.save();
       const userId = safeObjectIdToString(savedUser._id);
 
+      // TODO: Call user-service to create user profile
+      // This should be done asynchronously or through a message queue
+
       return {
         userId,
         message: 'Registration successful',
@@ -115,6 +119,7 @@ export class UserService {
     }
   }
 
+  // This method is used internally for authentication purposes only
   async login(request: LoginRequest): Promise<LoginResponse> {
     try {
       // Find user by username or email
@@ -146,7 +151,7 @@ export class UserService {
           refreshToken: '',
           message: 'Invalid credentials',
           success: false,
-          errors: ['Invalid credentials'],
+          errors: [getErrorMessage(error)],
         };
       }
 
@@ -172,7 +177,6 @@ export class UserService {
       return {
         userId: '',
         accessToken: '',
-        refreshToken: '',
         message: 'Login failed',
         success: false,
         errors: [getErrorMessage(error)],
@@ -180,6 +184,7 @@ export class UserService {
     }
   }
 
+  // These methods are used internally for authentication purposes only
   async validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> {
     try {
       const payload = this.jwtService.verifyAccessToken(request.token);
@@ -200,7 +205,7 @@ export class UserService {
           valid: false,
           userId: '',
           message: 'User not found or inactive',
-          errors: ['User not found or inactive'],
+          errors: [getErrorMessage(error)],
         };
       }
 
@@ -242,7 +247,7 @@ export class UserService {
           accessToken: '',
           message: 'Invalid refresh token or user not found',
           success: false,
-          errors: ['Invalid refresh token or user not found'],
+          errors: [getErrorMessage(error)],
         };
       }
 
@@ -269,6 +274,7 @@ export class UserService {
     }
   }
 
+  // This method is used internally for authentication purposes only
   async getUserById(userId: string): Promise<User | null> {
     try {
       return await this.userModel.findById(userId);
@@ -277,6 +283,7 @@ export class UserService {
     }
   }
 
+  // These methods are used internally for token management
   async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
     try {
       await this.userModel.updateOne(

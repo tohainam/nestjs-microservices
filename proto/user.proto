@@ -24,7 +24,7 @@ message HealthResponse {
 
 // Create user profile
 message CreateUserRequest {
-  string userId = 1;
+  string authUserId = 1;
   string firstName = 2;
   string lastName = 3;
 }
@@ -36,9 +36,9 @@ message CreateUserResponse {
   repeated string errors = 4;
 }
 
-// Get user by userId
-message GetUserByUserIdRequest {
-  string userId = 1;
+// Get user by authUserId
+message GetUserByAuthUserIdRequest {
+  string authUserId = 1;
 }
 
 message GetUserByUserIdResponse {
@@ -50,7 +50,7 @@ message GetUserByUserIdResponse {
 
 // Update user profile
 message UpdateUserProfileRequest {
-  string userId = 1;
+  string authUserId = 1;
   string firstName = 2;
   string lastName = 3;
   string bio = 4;
@@ -69,7 +69,7 @@ message UpdateUserProfileResponse {
 
 // Delete user
 message DeleteUserRequest {
-  string userId = 1;
+  string authUserId = 1;
 }
 
 message DeleteUserResponse {
@@ -80,7 +80,7 @@ message DeleteUserResponse {
 
 // Activate user
 message ActivateUserRequest {
-  string userId = 1;
+  string authUserId = 1;
 }
 
 message ActivateUserResponse {
@@ -92,7 +92,7 @@ message ActivateUserResponse {
 
 // Deactivate user
 message DeactivateUserRequest {
-  string userId = 1;
+  string authUserId = 1;
 }
 
 message DeactivateUserResponse {
@@ -104,7 +104,7 @@ message DeactivateUserResponse {
 
 // Update last login
 message UpdateLastLoginRequest {
-  string userId = 1;
+  string authUserId = 1;
 }
 
 message UpdateLastLoginResponse {
@@ -126,12 +126,12 @@ message SearchUsersResponse {
   repeated string errors = 4;
 }
 
-// Get users by IDs
-message GetUsersByIdsRequest {
-  repeated string userIds = 1;
+// Get users by authUserIds
+message GetUsersByAuthUserIdsRequest {
+  repeated string authUserIds = 1;
 }
 
-message GetUsersByIdsResponse {
+message GetUsersByAuthUserIdsResponse {
   bool success = 1;
   string message = 2;
   repeated UserProfile users = 3;
@@ -140,7 +140,7 @@ message GetUsersByIdsResponse {
 
 // User profile
 message UserProfile {
-  string userId = 1;
+  string authUserId = 1;
   string firstName = 2;
   string lastName = 3;
   bool isActive = 4;

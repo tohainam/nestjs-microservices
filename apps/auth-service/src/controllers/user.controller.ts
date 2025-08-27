@@ -1,6 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { UserService } from '../services/user.service';
-import { UserServiceControllerMethods } from '@app/common';
+import { AuthServiceControllerMethods } from '@app/common';
 import {
   RegisterRequest,
   RegisterResponse,
@@ -13,7 +13,7 @@ import {
 } from '@app/common';
 
 @Controller()
-@UserServiceControllerMethods()
+@AuthServiceControllerMethods()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

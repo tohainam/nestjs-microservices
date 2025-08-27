@@ -50,10 +50,10 @@ export class UserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async createUser(userId: string, firstName: string, lastName: string): Promise<User> {
+  async createUser(authUserId: string, firstName: string, lastName: string): Promise<User> {
     try {
       const user = new this.userModel({
-        userId,
+        authUserId,
         firstName,
         lastName,
         isActive: true,
@@ -66,11 +66,11 @@ export class UserService {
     }
   }
 
-  async getUserByUserId(userId: string): Promise<User> {
+  async getUserByAuthUserId(authUserId: string): Promise<User> {
     try {
-      const user = await this.userModel.findOne({ userId });
+      const user = await this.userModel.findOne({ authUserId });
       if (!user) {
-        throw new NotFoundException(`User with userId ${userId} not found`);
+        throw new NotFoundException(`User with authUserId ${authUserId} not found`);
       }
       return user;
     } catch (error) {
@@ -81,16 +81,16 @@ export class UserService {
     }
   }
 
-  async updateUserProfile(userId: string, updateData: Partial<User>): Promise<User> {
+  async updateUserProfile(authUserId: string, updateData: Partial<User>): Promise<User> {
     try {
       const user = await this.userModel.findOneAndUpdate(
-        { userId },
+        { authUserId },
         { $set: updateData },
         { new: true, runValidators: true }
       );
 
       if (!user) {
-        throw new NotFoundException(`User with userId ${userId} not found`);
+        throw new NotFoundException(`User with authUserId ${authUserId} not found`);
       }
 
       return user;
@@ -102,25 +102,25 @@ export class UserService {
     }
   }
 
-  async deleteUser(userId: string): Promise<boolean> {
+  async deleteUser(authUserId: string): Promise<boolean> {
     try {
-      const result = await this.userModel.deleteOne({ userId });
+      const result = await this.userModel.deleteOne({ authUserId });
       return result.deletedCount > 0;
     } catch (error) {
       throw new Error(`Failed to delete user: ${getErrorMessage(error)}`);
     }
   }
 
-  async deactivateUser(userId: string): Promise<User> {
+  async deactivateUser(authUserId: string): Promise<User> {
     try {
       const user = await this.userModel.findOneAndUpdate(
-        { userId },
+        { authUserId },
         { $set: { isActive: false } },
         { new: true }
       );
 
       if (!user) {
-        throw new NotFoundException(`User with userId ${userId} not found`);
+        throw new NotFoundException(`User with authUserId ${authUserId} not found`);
       }
 
       return user;
@@ -132,16 +132,16 @@ export class UserService {
     }
   }
 
-  async activateUser(userId: string): Promise<User> {
+  async activateUser(authUserId: string): Promise<User> {
     try {
       const user = await this.userModel.findOneAndUpdate(
-        { userId },
+        { authUserId },
         { $set: { isActive: true } },
         { new: true }
       );
 
       if (!user) {
-        throw new NotFoundException(`User with userId ${userId} not found`);
+        throw new NotFoundException(`User with authUserId ${authUserId} not found`);
       }
 
       return user;
@@ -153,10 +153,10 @@ export class UserService {
     }
   }
 
-  async updateLastLogin(userId: string): Promise<void> {
+  async updateLastLogin(authUserId: string): Promise<void> {
     try {
       await this.userModel.updateOne(
-        { userId },
+        { authUserId },
         { $set: { lastLoginAt: new Date() } }
       );
     } catch (error) {
@@ -185,16 +185,16 @@ export class UserService {
     }
   }
 
-  async getUsersByIds(userIds: string[]): Promise<User[]> {
+  async getUsersByAuthUserIds(authUserIds: string[]): Promise<User[]> {
     try {
       const users = await this.userModel.find({
-        userId: { $in: userIds },
+        authUserId: { $in: authUserIds },
         isActive: true,
       });
 
       return users;
     } catch (error) {
-      throw new Error(`Failed to get users by IDs: ${getErrorMessage(error)}`);
+      throw new Error(`Failed to get users by authUserIds: ${getErrorMessage(error)}`);
     }
   }
 }
