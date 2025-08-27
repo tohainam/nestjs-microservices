@@ -13,7 +13,7 @@ export interface CreateUserRequest {
 export interface CreateUserResponse {
   success: boolean;
   message: string;
-  user: UserProfile;
+  user: UserProfile | null;
   errors: string[];
 }
 
@@ -24,7 +24,7 @@ export interface GetUserByAuthUserIdRequest {
 export interface GetUserByAuthUserIdResponse {
   success: boolean;
   message: string;
-  user: UserProfile;
+  user: UserProfile | null;
   errors: string[];
 }
 
@@ -42,7 +42,7 @@ export interface UpdateUserProfileRequest {
 export interface UpdateUserProfileResponse {
   success: boolean;
   message: string;
-  user: UserProfile;
+  user: UserProfile | null;
   errors: string[];
 }
 
@@ -63,7 +63,7 @@ export interface ActivateUserRequest {
 export interface ActivateUserResponse {
   success: boolean;
   message: string;
-  user: UserProfile;
+  user: UserProfile | null;
   errors: string[];
 }
 
@@ -74,7 +74,7 @@ export interface DeactivateUserRequest {
 export interface DeactivateUserResponse {
   success: boolean;
   message: string;
-  user: UserProfile;
+  user: UserProfile | null;
   errors: string[];
 }
 
@@ -152,6 +152,7 @@ export interface NotificationPreferences {
 
 // gRPC Method decorators
 export const USER_PACKAGE_NAME = 'user';
+export const USER_SERVICE_NAME = 'USER_SERVICE';
 
 export interface UserServiceClient {
   createUser(request: CreateUserRequest): Observable<CreateUserResponse>;

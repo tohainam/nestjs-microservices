@@ -5,14 +5,14 @@ package user;
 // User profile management service
 service UserService {
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
-  rpc GetUserByUserId (GetUserByUserIdRequest) returns (GetUserByUserIdResponse) {}
+  rpc GetUserByAuthUserId (GetUserByAuthUserIdRequest) returns (GetUserByAuthUserIdResponse) {}
   rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
   rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {}
   rpc ActivateUser (ActivateUserRequest) returns (ActivateUserResponse) {}
   rpc DeactivateUser (DeactivateUserRequest) returns (DeactivateUserResponse) {}
   rpc UpdateLastLogin (UpdateLastLoginRequest) returns (UpdateLastLoginResponse) {}
   rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse) {}
-  rpc GetUsersByIds (GetUsersByIdsRequest) returns (GetUsersByIdsResponse) {}
+  rpc GetUsersByAuthUserIds (GetUsersByAuthUserIdsRequest) returns (GetUsersByAuthUserIdsResponse) {}
   rpc Health (HealthRequest) returns (HealthResponse) {}
 }
 
@@ -41,7 +41,7 @@ message GetUserByAuthUserIdRequest {
   string authUserId = 1;
 }
 
-message GetUserByUserIdResponse {
+message GetUserByAuthUserIdResponse {
   bool success = 1;
   string message = 2;
   UserProfile user = 3;

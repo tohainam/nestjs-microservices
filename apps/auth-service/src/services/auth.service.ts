@@ -42,7 +42,7 @@ export class AuthService {
       }
 
       // Check if user still exists and is active
-      await this.userService.getUserProfile({ userId: payload.userId });
+      await this.userService.getUserById(payload.userId);
 
       return {
         authenticated: true,

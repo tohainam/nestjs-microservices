@@ -13,6 +13,7 @@ import type {
   RefreshTokenRequest,
   RefreshTokenResponse,
   GetUserProfileRequest,
+  GetUserByAuthUserIdResponse,
   UserProfile,
   UpdateUserProfileRequest,
   AuthenticateRequest,
@@ -21,7 +22,7 @@ import type {
   RevokeTokenResponse,
   HealthResponse,
 } from '@app/common';
-import { AUTH_SERVICE_NAME } from '@app/common';
+import { AUTH_SERVICE_NAME, USER_SERVICE_NAME } from '@app/common';
 
 @Injectable()
 export class AuthClientService implements OnModuleInit {
@@ -29,12 +30,17 @@ export class AuthClientService implements OnModuleInit {
   private authService: AuthServiceClient;
 
   constructor(
-    @Inject(AUTH_SERVICE_NAME as string) private readonly client: ClientGrpc,
+    @Inject(AUTH_SERVICE_NAME as string)
+    private readonly authClient: ClientGrpc,
+    @Inject(USER_SERVICE_NAME as string)
+    private readonly userClient: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.userService = this.client.getService<UserServiceClient>('UserService');
-    this.authService = this.client.getService<AuthServiceClient>('AuthService');
+    this.userService =
+      this.userClient.getService<UserServiceClient>('UserService');
+    this.authService =
+      this.authClient.getService<AuthServiceClient>('AuthService');
   }
 
   async health(): Promise<HealthResponse> {
@@ -64,9 +70,12 @@ export class AuthClientService implements OnModuleInit {
 
   async getUserProfile(request: GetUserProfileRequest): Promise<UserProfile> {
     const userRequest = { authUserId: request.userId };
-    const response: { user: UserProfile } = await firstValueFrom(
-      this.userService.getUserProfile(userRequest),
+    const response: GetUserByAuthUserIdResponse = await firstValueFrom(
+      this.userService.getUserByAuthUserId(userRequest),
     );
+    if (!response.user) {
+      throw new Error('User not found');
+    }
     return response.user;
   }
 
