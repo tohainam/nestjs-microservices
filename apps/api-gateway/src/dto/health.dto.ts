@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+interface HealthDetails {
+  uptime: number;
+  memory: string;
+  environment: string;
+}
+
 export class HealthResponseDto {
   @ApiProperty({
     description: 'Service status',
@@ -30,10 +36,10 @@ export class HealthResponseDto {
     description: 'Additional health check details',
     required: false,
     example: {
-      uptime: '2h 30m 15s',
+      uptime: 2.5,
       memory: '45.2 MB',
-      database: 'connected',
+      environment: 'development',
     },
   })
-  details?: Record<string, any>;
+  details?: HealthDetails;
 }

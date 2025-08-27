@@ -177,10 +177,10 @@ export function UserServiceControllerMethods() {
     ];
     
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+      const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
         method,
-      );
+      ) as PropertyDescriptor;
       GrpcMethod(USER_SERVICE_NAME, method)(
         constructor.prototype[method],
         method,
@@ -190,10 +190,10 @@ export function UserServiceControllerMethods() {
     
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+      const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
         method,
-      );
+      ) as PropertyDescriptor;
       GrpcStreamMethod(USER_SERVICE_NAME, method)(
         constructor.prototype[method],
         method,
@@ -209,10 +209,10 @@ export function AuthServiceControllerMethods() {
     const grpcMethods: string[] = ['authenticate', 'revokeToken'];
     
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+      const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
         method,
-      );
+      ) as PropertyDescriptor;
       GrpcMethod(AUTH_SERVICE_NAME, method)(
         constructor.prototype[method],
         method,
@@ -222,10 +222,10 @@ export function AuthServiceControllerMethods() {
     
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+      const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(
         constructor.prototype,
         method,
-      );
+      ) as PropertyDescriptor;
       GrpcStreamMethod(AUTH_SERVICE_NAME, method)(
         constructor.prototype[method],
         method,
