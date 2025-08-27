@@ -16,6 +16,13 @@ service UserService {
 service AuthService {
   rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
   rpc RevokeToken (RevokeTokenRequest) returns (RevokeTokenResponse) {}
+  rpc Health (HealthRequest) returns (HealthResponse) {}
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string message = 1;
 }
 
 // User registration
@@ -71,7 +78,7 @@ message RefreshTokenResponse {
   string refreshToken = 2;
   string message = 3;
   bool success = 4;
-  repeated string errors = 4;
+  repeated string errors = 5;
 }
 
 // Authentication

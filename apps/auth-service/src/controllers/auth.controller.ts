@@ -13,13 +13,17 @@ import {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  health() {
+    return { message: 'Auth service is healthy' };
+  }
+
   async authenticate(
     request: AuthenticateRequest,
   ): Promise<AuthenticateResponse> {
     return this.authService.authenticate(request);
   }
 
-  revokeToken(request: RevokeTokenRequest): RevokeTokenResponse {
+  async revokeToken(request: RevokeTokenRequest): Promise<RevokeTokenResponse> {
     return this.authService.revokeToken(request);
   }
 }

@@ -36,6 +36,7 @@ import {
   TokenValidationResponseDto,
 } from '../dto/auth.dto';
 import { AuthGuard } from '../guards/auth.guard';
+import { HealthResponse } from '@app/common';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -43,6 +44,20 @@ import { AuthGuard } from '../guards/auth.guard';
 @ApiConsumes('application/json')
 export class AuthController {
   constructor(private readonly authClientService: AuthClientService) {}
+
+  @Get('health')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Health Check',
+    description: 'Check the health of the authentication service',
+  })
+  async health(): Promise<ApiResponseDto<HealthResponse>> {
+    const result = await this.authClientService.health();
+    return {
+      success: true,
+      message: result.message,
+    };
+  }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)

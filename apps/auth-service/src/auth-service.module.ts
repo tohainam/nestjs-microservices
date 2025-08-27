@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthServiceModule } from '@app/common';
 import { User, UserSchema } from './entities/user.entity';
 import { UserController } from './controllers/user.controller';
 import { AuthController } from './controllers/auth.controller';
@@ -37,7 +36,6 @@ import { PasswordService } from './services/password.service';
       }),
       inject: [ConfigService],
     }),
-    AuthServiceModule,
   ],
   controllers: [UserController, AuthController],
   providers: [UserService, AuthService, JwtService, PasswordService],

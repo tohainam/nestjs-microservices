@@ -18,6 +18,8 @@ async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   const configService = app.get(ConfigService);
 
+  const port = configService.getOrThrow<string>('PORT');
+
   // Enable CORS
   app.enableCors({
     origin: true,
@@ -38,65 +40,9 @@ async function bootstrap() {
 
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('Authentication API Gateway')
-    .setDescription(
-      `
-      # Authentication API Gateway
-
-      This API Gateway provides authentication and user management services through a RESTful API interface.
-
-      ## Overview
-      - **User Registration**: Create new user accounts
-      - **User Authentication**: Login with username/email and password
-      - **Token Management**: JWT access and refresh tokens
-      - **User Profiles**: View and update user information
-      - **Health Monitoring**: Service health status
-
-      ## Architecture
-      - **API Gateway**: HTTP endpoints for external clients
-      - **Auth Service**: gRPC microservice for authentication logic
-      - **MongoDB**: User data storage
-      - **JWT**: Secure token-based authentication
-
-      ## Security Features
-      - Password hashing with bcrypt
-      - JWT token validation
-      - Input validation and sanitization
-      - Network isolation for auth service
-      - Single entry point architecture
-
-      ## Authentication Flow
-      1. **Register**: Create new user account
-      2. **Login**: Get access and refresh tokens
-      3. **Use API**: Include access token in Authorization header
-      4. **Refresh**: Get new tokens when access token expires
-      5. **Logout**: Revoke current access token
-
-      ## Rate Limiting
-      - Registration: 5 requests per hour per IP
-      - Login: 10 requests per minute per IP
-      - API calls: 100 requests per minute per user
-
-      ## Error Handling
-      - Consistent error response format
-      - Detailed validation error messages
-      - HTTP status codes following REST standards
-      - Comprehensive error logging
-
-      ## Development
-      - Built with NestJS framework
-      - TypeScript for type safety
-      - Swagger/OpenAPI documentation
-      - Docker containerization
-      - MongoDB replica set
-    `,
-    )
+    .setTitle('Biz FSEAI API Gateway')
+    .setDescription("API Gateway for the Biz FSEAI Microservices")
     .setVersion('1.0.0')
-    .setContact(
-      'Development Team',
-      'https://github.com/your-org/auth-service',
-      'dev@yourcompany.com',
-    )
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addTag('Authentication', 'User authentication and authorization endpoints')
     .addTag('Health', 'Service health monitoring endpoints')
@@ -111,16 +57,27 @@ async function bootstrap() {
       },
       'JWT-auth', // This name here is important for @ApiBearerAuth() decorator
     )
-    .addServer('http://localhost:8000', 'Local Development')
-    .addServer('https://api.yourcompany.com', 'Production')
+    .addServer(`http://localhost:${port}`, 'Local Development')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
     extraModels: [],
     deepScanRoutes: true,
+    operationIdFactory: (_controllerKey: string, methodKey: string) => methodKey,
   });
 
-  SwaggerModule.setup('api', app, document, {
+  if (document.paths) {
+    const pathsWithPrefix: Record<string, any> = {};
+    Object.keys(document.paths).forEach((path) => {
+      const newPath = `/v1${path}`;
+      pathsWithPrefix[newPath] = document.paths[path];
+    });
+    document.paths = pathsWithPrefix;
+  }
+
+
+
+  SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,
@@ -153,12 +110,11 @@ async function bootstrap() {
   // Global prefix for all routes
   app.setGlobalPrefix('v1');
 
-  const port = configService.getOrThrow<string>('PORT');
   await app.listen(port);
 
   console.log(`🚀 API Gateway is running on: http://localhost:${port}`);
   console.log(
-    `📚 Swagger documentation available at: http://localhost:${port}/api`,
+    `📚 Swagger documentation available at: http://localhost:${port}/docs`,
   );
   console.log(
     `🔍 Health check available at: http://localhost:${port}/v1/health`,

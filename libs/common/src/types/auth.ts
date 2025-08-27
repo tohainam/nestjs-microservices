@@ -98,6 +98,14 @@ export interface RevokeTokenResponse {
   errors: string[];
 }
 
+export interface HealthRequest {
+}
+
+// Health check response
+export interface HealthResponse {
+  message: string;
+}
+
 // Common response wrapper
 export interface BaseResponse {
   success: boolean;
@@ -162,6 +170,7 @@ export interface UserServiceController {
 export interface AuthServiceClient {
   authenticate(request: AuthenticateRequest): Observable<AuthenticateResponse>;
   revokeToken(request: RevokeTokenRequest): Observable<RevokeTokenResponse>;
+  health(request: HealthRequest): Observable<HealthResponse>;
 }
 
 // Auth Service Controller
@@ -179,6 +188,10 @@ export interface AuthServiceController {
     | Promise<RevokeTokenResponse>
     | Observable<RevokeTokenResponse>
     | RevokeTokenResponse;
+
+  health(
+    request: HealthRequest,
+  ): Promise<HealthResponse> | Observable<HealthResponse> | HealthResponse;
 }
 
 // User Service Controller Methods
@@ -223,7 +236,7 @@ export function UserServiceControllerMethods() {
 // Auth Service Controller Methods
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ['authenticate', 'revokeToken'];
+    const grpcMethods: string[] = ['authenticate', 'revokeToken', 'health'];
 
     for (const method of grpcMethods) {
       const descriptor: PropertyDescriptor = Reflect.getOwnPropertyDescriptor(

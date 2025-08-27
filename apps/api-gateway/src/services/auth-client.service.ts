@@ -19,6 +19,7 @@ import type {
   AuthenticateResponse,
   RevokeTokenRequest,
   RevokeTokenResponse,
+  HealthResponse,
 } from '@app/common';
 import { AUTH_SERVICE_NAME } from '@app/common';
 
@@ -32,6 +33,10 @@ export class AuthClientService implements OnModuleInit {
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>('UserService');
     this.authService = this.client.getService<AuthServiceClient>('AuthService');
+  }
+
+  async health(): Promise<HealthResponse> {
+    return firstValueFrom(this.authService.health({}));
   }
 
   // User Service Methods
