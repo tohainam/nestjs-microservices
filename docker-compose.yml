@@ -12,6 +12,13 @@ services:
       - '8000:8000'
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    networks:
+      - biz-fseai-microservice
+
   auth-service:
     container_name: biz-fseai-auth-service
     build:
@@ -23,3 +30,81 @@ services:
       - ./apps/auth-service/.env
     volumes:
       - .:/usr/src/app
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    networks:
+      - biz-fseai-microservice
+
+  mongodb1:
+    image: mongo:8.0.13
+    container_name: biz-fseai-mongodb1
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+  # No authentication
+    volumes:
+      - biz-fseai-mongodb1-data:/data/db
+    networks:
+      - biz-fseai-microservice
+
+  mongodb2:
+    image: mongo:8.0.13
+    container_name: biz-fseai-mongodb2
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27018"]
+  # No authentication
+    volumes:
+      - biz-fseai-mongodb2-data:/data/db
+    networks:
+      - biz-fseai-microservice
+
+  mongodb3:
+    image: mongo:8.0.13
+    container_name: biz-fseai-mongodb3
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27019"]
+  # No authentication
+    volumes:
+      - biz-fseai-mongodb3-data:/data/db
+    networks:
+      - biz-fseai-microservice
+
+  mongo-setup:
+    image: mongo:8.0.13
+    container_name: biz-fseai-mongo-setup
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    command: ["sh", "/scripts/mongo-init.sh"]
+    volumes:
+      - ./scripts/mongo-init.sh:/scripts/mongo-init.sh:ro
+    networks:
+      - biz-fseai-microservice
+    restart: on-failure
+
+  mongo-express:
+    image: mongo-express:1.0.0-20
+    container_name: biz-fseai-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb1
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_MONGODB_REPLICA_SET: rs0
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: secret
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb1
+      - mongodb2
+      - mongodb3
+    networks:
+      - biz-fseai-microservice
+
+volumes:
+  biz-fseai-mongodb1-data:
+  biz-fseai-mongodb2-data:
+  biz-fseai-mongodb3-data:
+
+networks:
+  biz-fseai-microservice:
+    driver: bridge

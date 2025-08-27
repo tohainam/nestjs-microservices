@@ -1,2 +1,1 @@
-export * from './shared-infra.module';
-export * from './shared-infra.service';
+export * from './database';
