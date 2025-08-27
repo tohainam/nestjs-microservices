@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
@@ -13,9 +13,6 @@ import {
   ValidateTokenResponse,
   RefreshTokenRequest,
   RefreshTokenResponse,
-  GetUserProfileRequest,
-  UserProfile,
-  UpdateUserProfileRequest,
 } from '@app/common';
 
 // Helper function to safely extract error message
@@ -40,25 +37,6 @@ function safeObjectIdToString(id: unknown): string {
   return '';
 }
 
-// Helper function to safely extract timestamps from MongoDB document
-function extractTimestamps(doc: UserDocument): {
-  createdAt: string;
-  updatedAt: string;
-} {
-  const now = new Date().toISOString();
-
-  // Type-safe access to timestamps
-  const docWithTimestamps = doc as UserDocument & {
-    createdAt?: Date;
-    updatedAt?: Date;
-  };
-
-  return {
-    createdAt: docWithTimestamps.createdAt?.toISOString() ?? now,
-    updatedAt: docWithTimestamps.updatedAt?.toISOString() ?? now,
-  };
-}
-
 @Injectable()
 export class UserService {
   constructor(
@@ -67,6 +45,7 @@ export class UserService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // This method is used internally for authentication purposes only
   async register(request: RegisterRequest): Promise<RegisterResponse> {
     try {
       // Check if user already exists
@@ -98,15 +77,9 @@ export class UserService {
       if (!isPasswordValid) {
         return {
           userId: '',
-          message: 'Password does not meet requirements',
+          message: 'Password validation failed',
           success: false,
-          errors: [
-            'Password must be at least 8 characters long',
-            'Password must contain at least one uppercase letter',
-            'Password must contain at least one lowercase letter',
-            'Password must contain at least one number',
-            'Password must contain at least one special character',
-          ],
+          errors: ['Password does not meet requirements'],
         };
       }
 
@@ -115,34 +88,38 @@ export class UserService {
         request.password,
       );
 
-      // Create user
+      // Create user with only authentication data
       const user = new this.userModel({
         username: request.username,
         email: request.email,
         password: hashedPassword,
-        firstName: request.firstName,
-        lastName: request.lastName,
+        isActive: true,
+        isEmailVerified: false,
       });
 
       const savedUser = await user.save();
+      const userId = safeObjectIdToString(savedUser._id);
+
+      // TODO: Call user-service to create user profile
+      // This should be done asynchronously or through a message queue
 
       return {
-        userId: safeObjectIdToString(savedUser._id),
-        message: 'User registered successfully',
+        userId,
+        message: 'Registration successful',
         success: true,
         errors: [],
       };
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error);
+    } catch (error) {
       return {
         userId: '',
         message: 'Registration failed',
         success: false,
-        errors: [errorMessage],
+        errors: [getErrorMessage(error)],
       };
     }
   }
 
+  // This method is used internally for authentication purposes only
   async login(request: LoginRequest): Promise<LoginResponse> {
     try {
       // Find user by username or email
@@ -150,42 +127,14 @@ export class UserService {
         $or: [{ username: request.username }, { email: request.username }],
       });
 
-      if (!user) {
+      if (!user || !user.isActive) {
         return {
+          userId: '',
           accessToken: '',
           refreshToken: '',
-          message: 'Invalid credentials',
+          message: 'Invalid credentials or user is inactive',
           success: false,
-          user: {
-            userId: '',
-            username: '',
-            email: '',
-            firstName: '',
-            lastName: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          errors: ['Invalid username or password'],
-        };
-      }
-
-      // Check if user is active
-      if (!user.isActive) {
-        return {
-          accessToken: '',
-          refreshToken: '',
-          message: 'Account is deactivated',
-          success: false,
-          user: {
-            userId: '',
-            username: '',
-            email: '',
-            firstName: '',
-            lastName: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          errors: ['Account is deactivated'],
+          errors: ['Invalid credentials or user is inactive'],
         };
       }
 
@@ -197,81 +146,52 @@ export class UserService {
 
       if (!isPasswordValid) {
         return {
+          userId: '',
           accessToken: '',
           refreshToken: '',
           message: 'Invalid credentials',
           success: false,
-          user: {
-            userId: '',
-            username: '',
-            email: '',
-            firstName: '',
-            lastName: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          errors: ['Invalid username or password'],
+          errors: ['Invalid credentials'],
         };
       }
 
+      const userId = safeObjectIdToString(user._id);
+
       // Generate tokens
       const accessToken = this.jwtService.generateAccessToken({
-        userId: safeObjectIdToString(user._id),
+        userId,
         username: user.username,
       });
-
       const refreshToken = this.jwtService.generateRefreshToken({
-        userId: safeObjectIdToString(user._id),
+        userId,
         username: user.username,
       });
 
-      // Update user's refresh token and last login
-      await this.userModel.findByIdAndUpdate(user._id, {
-        refreshToken,
-        lastLoginAt: new Date(),
-      });
-
-      // Create user profile
-      const timestamps = extractTimestamps(user);
-      const userProfile: UserProfile = {
-        userId: safeObjectIdToString(user._id),
-        username: user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        createdAt: timestamps.createdAt,
-        updatedAt: timestamps.updatedAt,
-      };
+      // Save refresh token
+      user.refreshToken = refreshToken;
+      await user.save();
 
       return {
+        userId,
         accessToken,
         refreshToken,
         message: 'Login successful',
         success: true,
-        user: userProfile,
         errors: [],
       };
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error);
+    } catch (error) {
       return {
+        userId: '',
         accessToken: '',
         refreshToken: '',
         message: 'Login failed',
         success: false,
-        user: {
-          userId: '',
-          username: '',
-          email: '',
-          firstName: '',
-          lastName: '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        errors: [errorMessage],
+        errors: [getErrorMessage(error)],
       };
     }
   }
 
+  // These methods are used internally for authentication purposes only
   async validateToken(
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
@@ -280,9 +200,9 @@ export class UserService {
 
       if (!payload) {
         return {
-          isValid: false,
+          valid: false,
           userId: '',
-          message: 'Invalid token',
+          message: 'Token is invalid or expired',
           errors: ['Token is invalid or expired'],
         };
       }
@@ -291,7 +211,7 @@ export class UserService {
       const user = await this.userModel.findById(payload.userId);
       if (!user || !user.isActive) {
         return {
-          isValid: false,
+          valid: false,
           userId: '',
           message: 'User not found or inactive',
           errors: ['User not found or inactive'],
@@ -299,18 +219,17 @@ export class UserService {
       }
 
       return {
-        isValid: true,
+        valid: true,
         userId: payload.userId,
         message: 'Token is valid',
         errors: [],
       };
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error);
+    } catch (error) {
       return {
-        isValid: false,
+        valid: false,
         userId: '',
         message: 'Token validation failed',
-        errors: [errorMessage],
+        errors: [getErrorMessage(error)],
       };
     }
   }
@@ -323,9 +242,9 @@ export class UserService {
 
       if (!payload) {
         return {
+          userId: '',
           accessToken: '',
-          refreshToken: '',
-          message: 'Invalid refresh token',
+          message: 'Refresh token is invalid or expired',
           success: false,
           errors: ['Refresh token is invalid or expired'],
         };
@@ -333,95 +252,82 @@ export class UserService {
 
       // Check if user exists and refresh token matches
       const user = await this.userModel.findById(payload.userId);
-      if (!user || user.refreshToken !== request.refreshToken) {
+      if (
+        !user ||
+        !user.isActive ||
+        user.refreshToken !== request.refreshToken
+      ) {
         return {
+          userId: '',
           accessToken: '',
-          refreshToken: '',
-          message: 'Invalid refresh token',
+          message: 'Invalid refresh token or user not found',
           success: false,
-          errors: ['Refresh token mismatch'],
+          errors: ['Invalid refresh token or user not found'],
         };
       }
 
-      // Generate new tokens
-      const newAccessToken = this.jwtService.generateAccessToken({
-        userId: safeObjectIdToString(user._id),
-        username: user.username,
-      });
+      const userId = safeObjectIdToString(user._id);
 
-      const newRefreshToken = this.jwtService.generateRefreshToken({
-        userId: safeObjectIdToString(user._id),
+      // Generate new access token
+      const accessToken = this.jwtService.generateAccessToken({
+        userId,
         username: user.username,
-      });
-
-      // Update user's refresh token
-      await this.userModel.findByIdAndUpdate(user._id, {
-        refreshToken: newRefreshToken,
       });
 
       return {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
+        userId,
+        accessToken,
         message: 'Token refreshed successfully',
         success: true,
         errors: [],
       };
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error);
+    } catch (error) {
       return {
+        userId: '',
         accessToken: '',
-        refreshToken: '',
         message: 'Token refresh failed',
         success: false,
-        errors: [errorMessage],
+        errors: [getErrorMessage(error)],
       };
     }
   }
 
-  async getUserProfile(request: GetUserProfileRequest): Promise<UserProfile> {
-    const user = await this.userModel.findById(request.userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+  // This method is used internally for authentication purposes only
+  async getUserById(userId: string): Promise<User | null> {
+    try {
+      return await this.userModel.findById(userId);
+    } catch {
+      return null;
     }
-
-    const timestamps = extractTimestamps(user);
-    return {
-      userId: safeObjectIdToString(user._id),
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      createdAt: timestamps.createdAt,
-      updatedAt: timestamps.updatedAt,
-    };
   }
 
-  async updateUserProfile(
-    request: UpdateUserProfileRequest,
-  ): Promise<UserProfile> {
-    const user = await this.userModel.findByIdAndUpdate(
-      request.userId,
-      {
-        firstName: request.firstName,
-        lastName: request.lastName,
-        email: request.email,
-      },
-      { new: true },
-    );
-
-    if (!user) {
-      throw new NotFoundException('User not found');
+  // These methods are used internally for token management
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<void> {
+    try {
+      await this.userModel.updateOne(
+        { _id: userId },
+        { $set: { refreshToken } },
+      );
+    } catch (error) {
+      console.error(
+        `Failed to update refresh token: ${getErrorMessage(error)}`,
+      );
     }
+  }
 
-    const timestamps = extractTimestamps(user);
-    return {
-      userId: safeObjectIdToString(user._id),
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      createdAt: timestamps.createdAt,
-      updatedAt: timestamps.updatedAt,
-    };
+  async revokeRefreshToken(userId: string): Promise<void> {
+    try {
+      await this.userModel.updateOne(
+        { _id: userId },
+        { $unset: { refreshToken: 1 } },
+      );
+    } catch (error) {
+      console.error(
+        `Failed to revoke refresh token: ${getErrorMessage(error)}`,
+      );
+    }
   }
 }

@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package user;
+
+// User profile management service
+service UserService {
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
+  rpc GetUserByAuthUserId (GetUserByAuthUserIdRequest) returns (GetUserByAuthUserIdResponse) {}
+  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UpdateUserProfileResponse) {}
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse) {}
+  rpc ActivateUser (ActivateUserRequest) returns (ActivateUserResponse) {}
+  rpc DeactivateUser (DeactivateUserRequest) returns (DeactivateUserResponse) {}
+  rpc UpdateLastLogin (UpdateLastLoginRequest) returns (UpdateLastLoginResponse) {}
+  rpc SearchUsers (SearchUsersRequest) returns (SearchUsersResponse) {}
+  rpc GetUsersByAuthUserIds (GetUsersByAuthUserIdsRequest) returns (GetUsersByAuthUserIdsResponse) {}
+  rpc Health (HealthRequest) returns (HealthResponse) {}
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string message = 1;
+}
+
+// Create user profile
+message CreateUserRequest {
+  string authUserId = 1;
+  string firstName = 2;
+  string lastName = 3;
+}
+
+message CreateUserResponse {
+  bool success = 1;
+  string message = 2;
+  UserProfile user = 3;
+  repeated string errors = 4;
+}
+
+// Get user by authUserId
+message GetUserByAuthUserIdRequest {
+  string authUserId = 1;
+}
+
+message GetUserByAuthUserIdResponse {
+  bool success = 1;
+  string message = 2;
+  UserProfile user = 3;
+  repeated string errors = 4;
+}
+
+// Update user profile
+message UpdateUserProfileRequest {
+  string authUserId = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string bio = 4;
+  string profilePicture = 5;
+  string phoneNumber = 6;
+  Address address = 7;
+  UserPreferences preferences = 8;
+}
+
+message UpdateUserProfileResponse {
+  bool success = 1;
+  string message = 2;
+  UserProfile user = 3;
+  repeated string errors = 4;
+}
+
+// Delete user
+message DeleteUserRequest {
+  string authUserId = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string errors = 3;
+}
+
+// Activate user
+message ActivateUserRequest {
+  string authUserId = 1;
+}
+
+message ActivateUserResponse {
+  bool success = 1;
+  string message = 2;
+  UserProfile user = 3;
+  repeated string errors = 4;
+}
+
+// Deactivate user
+message DeactivateUserRequest {
+  string authUserId = 1;
+}
+
+message DeactivateUserResponse {
+  bool success = 1;
+  string message = 2;
+  UserProfile user = 3;
+  repeated string errors = 4;
+}
+
+// Update last login
+message UpdateLastLoginRequest {
+  string authUserId = 1;
+}
+
+message UpdateLastLoginResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string errors = 3;
+}
+
+// Search users
+message SearchUsersRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+
+message SearchUsersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated UserProfile users = 3;
+  repeated string errors = 4;
+}
+
+// Get users by authUserIds
+message GetUsersByAuthUserIdsRequest {
+  repeated string authUserIds = 1;
+}
+
+message GetUsersByAuthUserIdsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated UserProfile users = 3;
+  repeated string errors = 4;
+}
+
+// User profile
+message UserProfile {
+  string authUserId = 1;
+  string firstName = 2;
+  string lastName = 3;
+  bool isActive = 4;
+  bool isEmailVerified = 5;
+  string lastLoginAt = 6;
+  string profilePicture = 7;
+  string bio = 8;
+  string dateOfBirth = 9;
+  string phoneNumber = 10;
+  Address address = 11;
+  UserPreferences preferences = 12;
+  string createdAt = 13;
+  string updatedAt = 14;
+}
+
+// Address
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string country = 4;
+  string zipCode = 5;
+}
+
+// User preferences
+message UserPreferences {
+  string language = 1;
+  string timezone = 2;
+  NotificationPreferences notifications = 3;
+}
+
+// Notification preferences
+message NotificationPreferences {
+  bool email = 1;
+  bool push = 2;
+  bool sms = 3;
+}
