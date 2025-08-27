@@ -29,6 +29,7 @@
   - `HealthController`: Health check endpoint
 - **Guards**: `AuthGuard` for protecting routes
 - **DTOs**: Input validation for all endpoints
+- **API Versioning**: All endpoints prefixed with `/v1`
 
 ### 4. **Common Library** (`libs/common/`)
 - **Type Definitions**: All gRPC interfaces and types
@@ -56,37 +57,54 @@
 - **Configuration Caching**: Improved performance
 - **Multiple Environment Files**: Support for .env and .env.local
 
+### 8. **Swagger API Documentation** 🆕
+- **Interactive Documentation**: Swagger UI for easy API testing
+- **Comprehensive DTOs**: All request/response models documented
+- **JWT Authentication**: Bearer token support in Swagger UI
+- **API Versioning**: `/v1` prefix for all endpoints
+- **Health Monitoring**: Enhanced health check with system metrics
+- **CORS Support**: Cross-origin resource sharing enabled
+- **Validation Pipes**: Global validation with detailed error messages
+
 ## 🚀 API Endpoints
 
-### Public Endpoints
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-- `POST /auth/refresh` - Refresh access token
-- `POST /auth/validate` - Validate token
-- `GET /health` - Health check
+### **Base URL Structure**
+```
+Local Development: http://localhost:8000
+API Documentation: http://localhost:8000/api
+API Version: /v1
+```
 
-### Protected Endpoints
-- `POST /auth/logout` - User logout
-- `GET /auth/profile/:userId` - Get user profile
-- `PUT /auth/profile/:userId` - Update user profile
+### **Public Endpoints**
+- `GET /v1/health` - Health check with system metrics
+- `POST /v1/auth/register` - User registration
+- `POST /v1/auth/login` - User login
+- `POST /v1/auth/refresh` - Refresh access token
+- `POST /v1/auth/validate` - Validate token
+
+### **Protected Endpoints**
+- `POST /v1/auth/logout` - User logout (requires valid token)
+- `GET /v1/auth/profile/:userId` - Get user profile (requires valid token)
+- `PUT /v1/auth/profile/:userId` - Update user profile (requires valid token)
 
 ## 🔧 Configuration
 
-### Configuration Management
+### **Configuration Management**
 - **Async Loading**: Services wait for configuration to be loaded
 - **Environment Validation**: `getOrThrow` ensures required values are present
 - **Configuration Caching**: Improved performance with config caching
 - **Environment File Support**: Multiple .env file support (.env, .env.local)
 
-### Environment Variables
+### **Environment Variables**
 - **Auth Service**: MongoDB URI, gRPC URL, JWT secrets
 - **API Gateway**: HTTP port, gRPC client URL
 - **Docker**: Proper port mapping and networking (auth-service internal only)
 
-### Dependencies
+### **Dependencies**
 - **Core**: NestJS, gRPC, MongoDB
 - **Security**: JWT, bcrypt, class-validator
 - **Configuration**: @nestjs/config with async loading
+- **Documentation**: @nestjs/swagger for API documentation
 - **Development**: TypeScript, ESLint, Prettier
 
 ## 📁 File Structure
@@ -105,17 +123,18 @@
 │   │   └── .env                   # Environment config
 │   └── api-gateway/               # HTTP API Gateway (external entry point)
 │       ├── src/
-│       │   ├── controllers/       # HTTP controllers
+│       │   ├── controllers/       # HTTP controllers with Swagger decorators
 │       │   ├── services/          # gRPC client
 │       │   ├── guards/            # Authentication guards
-│       │   ├── dto/               # Request validation
-│       │   └── main.ts            # HTTP server
+│       │   ├── dto/               # Request validation with Swagger
+│       │   └── main.ts            # HTTP server with Swagger config
 │       └── .env                   # Environment config
 ├── libs/
 │   └── common/                    # Shared types and interfaces
 ├── docker-compose.yml             # Service orchestration (auth-service internal)
-├── package.json                   # Dependencies
-└── README.md                      # Documentation
+├── package.json                   # Dependencies including Swagger
+├── SWAGGER_DOCUMENTATION.md       # Comprehensive Swagger documentation
+└── README.md                      # Project overview
 ```
 
 ## 🎯 Key Benefits
@@ -154,6 +173,14 @@
 - **Configuration caching** - Performance optimization
 - **Multiple environment files** - Flexible configuration
 
+### 6. **Developer Experience** 🆕
+- **Interactive API Documentation** - Swagger UI for easy testing
+- **Comprehensive DTOs** - All models documented with examples
+- **JWT Integration** - Bearer token authentication in Swagger
+- **API Versioning** - Clear versioning with `/v1` prefix
+- **Health Monitoring** - Enhanced health checks with metrics
+- **CORS Support** - Cross-origin testing enabled
+
 ## 🚀 Getting Started
 
 ### 1. **Install Dependencies**
@@ -176,22 +203,36 @@ docker-compose up -d
 ./test-api.sh
 ```
 
+### 5. **Access Swagger Documentation**
+```
+http://localhost:8000/api
+```
+
 ## 🔍 Testing
 
-### Automated Tests
+### **Automated Tests**
 - `./test-setup.sh` - Verifies project setup
-- `./test-api.sh` - Tests API endpoints
+- `./test-api.sh` - Tests API endpoints including Swagger
 - Build verification with `pnpm run build`
 
-### Manual Testing
-- Health check: `GET http://localhost:8000/health`
-- Register user: `POST http://localhost:8000/auth/register`
-- Login: `POST http://localhost:8000/auth/login`
+### **Manual Testing**
+- **Swagger UI**: Interactive API testing at `/api`
+- **Health check**: `GET http://localhost:8000/v1/health`
+- **Register user**: `POST http://localhost:8000/v1/auth/register`
+- **Login**: `POST http://localhost:8000/v1/auth/login`
+
+### **Swagger UI Testing** 🆕
+1. **Open Swagger UI**: Navigate to `http://localhost:8000/api`
+2. **Register User**: Use `/v1/auth/register` endpoint
+3. **Login**: Use `/v1/auth/login` to get JWT tokens
+4. **Authorize**: Click "Authorize" and enter JWT token
+5. **Test Endpoints**: Use "Try it out" feature for all endpoints
 
 ## 📚 Documentation
 
 - **AUTHENTICATION_FLOW.md**: Detailed flow documentation
 - **IMPLEMENTATION_SUMMARY.md**: This summary document
+- **SWAGGER_DOCUMENTATION.md**: Comprehensive Swagger setup guide
 - **API_DOCUMENTATION.md**: Existing API documentation
 - **README.md**: Project overview
 
@@ -209,6 +250,9 @@ docker-compose up -d
 10. **Monitoring**: Health metrics and alerts
 11. **Configuration Validation**: Schema validation for environment variables
 12. **Secrets Management**: External secrets management integration
+13. **API Analytics**: Track API usage and performance
+14. **Enhanced Swagger**: Custom themes and branding
+15. **API Testing**: Automated API testing suite
 
 ## ✅ Implementation Status
 
@@ -226,6 +270,13 @@ docker-compose up -d
 - [x] **Environment validation with getOrThrow**
 - [x] **Network isolation for auth-service**
 - [x] **Single entry point architecture**
+- [x] **Swagger API documentation** 🆕
+- [x] **Interactive API testing** 🆕
+- [x] **JWT authentication in Swagger** 🆕
+- [x] **API versioning with /v1 prefix** 🆕
+- [x] **Enhanced health monitoring** 🆕
+- [x] **CORS support** 🆕
+- [x] **Global validation pipes** 🆕
 - [x] Environment configuration
 - [x] Docker orchestration
 - [x] Build system
@@ -244,7 +295,11 @@ The authentication flow has been successfully implemented with:
 - **Network isolation** - Auth service not externally accessible
 - **Single entry point** - All external requests through API Gateway
 - **Advanced configuration** - @nestjs/config with forRootAsync and getOrThrow
+- **Interactive API documentation** - Swagger UI for easy testing 🆕
+- **JWT authentication integration** - Bearer token support in Swagger 🆕
+- **API versioning** - Clear versioning with `/v1` prefix 🆕
+- **Enhanced developer experience** - Comprehensive documentation and testing 🆕
 - **Comprehensive testing** - Automated setup and API testing
 - **Production ready** - Docker orchestration and environment config
 
-The system is ready for development and can be easily extended with additional features and services. The new configuration approach provides better reliability and the network isolation enhances security by ensuring all external requests must go through the API Gateway.
+The system is ready for development and can be easily extended with additional features and services. The new Swagger documentation provides an interactive, professional API interface that significantly enhances developer experience and API adoption. The combination of advanced configuration management, network security, and comprehensive documentation makes this a production-ready authentication system.
