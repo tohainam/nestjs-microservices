@@ -26,14 +26,12 @@ import { PasswordService } from './services/password.service';
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-    ]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
-        signOptions: { 
+        signOptions: {
           expiresIn: configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN'),
         },
       }),

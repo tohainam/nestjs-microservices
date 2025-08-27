@@ -8,7 +8,7 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(AuthServiceModule);
   const configService = app.get(ConfigService);
-  
+
   // Configure gRPC microservice
   app.connectMicroservice({
     transport: Transport.GRPC,

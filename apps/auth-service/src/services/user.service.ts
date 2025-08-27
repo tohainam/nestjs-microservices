@@ -1,13 +1,13 @@
-import { Injectable, ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../entities/user.entity';
 import { PasswordService } from './password.service';
 import { JwtService } from './jwt.service';
-import { 
-  RegisterRequest, 
-  RegisterResponse, 
-  LoginRequest, 
+import {
+  RegisterRequest,
+  RegisterResponse,
+  LoginRequest,
   LoginResponse,
   ValidateTokenRequest,
   ValidateTokenResponse,
@@ -15,7 +15,7 @@ import {
   RefreshTokenResponse,
   GetUserProfileRequest,
   UserProfile,
-  UpdateUserProfileRequest
+  UpdateUserProfileRequest,
 } from '@app/common';
 
 @Injectable()
@@ -34,14 +34,14 @@ export class UserService {
       });
 
       if (existingUser) {
-        const errors = [];
+        const errors: string[] = [];
         if (existingUser.username === request.username) {
           errors.push('Username already exists');
         }
         if (existingUser.email === request.email) {
           errors.push('Email already exists');
         }
-        
+
         return {
           userId: '',
           message: 'Registration failed',
@@ -51,7 +51,9 @@ export class UserService {
       }
 
       // Validate password
-      const isPasswordValid = await this.passwordService.validatePassword(request.password);
+      const isPasswordValid = this.passwordService.validatePassword(
+        request.password,
+      );
       if (!isPasswordValid) {
         return {
           userId: '',
@@ -68,7 +70,9 @@ export class UserService {
       }
 
       // Hash password
-      const hashedPassword = await this.passwordService.hashPassword(request.password);
+      const hashedPassword = await this.passwordService.hashPassword(
+        request.password,
+      );
 
       // Create user
       const user = new this.userModel({
@@ -88,11 +92,13 @@ export class UserService {
         errors: [],
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         userId: '',
         message: 'Registration failed',
         success: false,
-        errors: [error.message],
+        errors: [errorMessage],
       };
     }
   }
@@ -181,21 +187,25 @@ export class UserService {
         errors: [],
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         accessToken: '',
         refreshToken: '',
         message: 'Login failed',
         success: false,
         user: null,
-        errors: [error.message],
+        errors: [errorMessage],
       };
     }
   }
 
-  async validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> {
+  async validateToken(
+    request: ValidateTokenRequest,
+  ): Promise<ValidateTokenResponse> {
     try {
       const payload = this.jwtService.verifyAccessToken(request.token);
-      
+
       if (!payload) {
         return {
           isValid: false,
@@ -223,19 +233,23 @@ export class UserService {
         errors: [],
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         isValid: false,
         userId: '',
         message: 'Token validation failed',
-        errors: [error.message],
+        errors: [errorMessage],
       };
     }
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> {
     try {
       const payload = this.jwtService.verifyRefreshToken(request.refreshToken);
-      
+
       if (!payload) {
         return {
           accessToken: '',
@@ -282,12 +296,14 @@ export class UserService {
         errors: [],
       };
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       return {
         accessToken: '',
         refreshToken: '',
         message: 'Token refresh failed',
         success: false,
-        errors: [error.message],
+        errors: [errorMessage],
       };
     }
   }
@@ -309,7 +325,9 @@ export class UserService {
     };
   }
 
-  async updateUserProfile(request: UpdateUserProfileRequest): Promise<UserProfile> {
+  async updateUserProfile(
+    request: UpdateUserProfileRequest,
+  ): Promise<UserProfile> {
     const user = await this.userModel.findByIdAndUpdate(
       request.userId,
       {

@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import type { 
-  UserServiceClient, 
+import type {
+  UserServiceClient,
   AuthServiceClient,
   RegisterRequest,
   RegisterResponse,
@@ -18,7 +18,7 @@ import type {
   AuthenticateRequest,
   AuthenticateResponse,
   RevokeTokenRequest,
-  RevokeTokenResponse
+  RevokeTokenResponse,
 } from '@app/common';
 import { AUTH_SERVICE_NAME } from '@app/common';
 
@@ -43,11 +43,15 @@ export class AuthClientService implements OnModuleInit {
     return firstValueFrom(this.userService.login(request));
   }
 
-  async validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> {
+  async validateToken(
+    request: ValidateTokenRequest,
+  ): Promise<ValidateTokenResponse> {
     return firstValueFrom(this.userService.validateToken(request));
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> {
     return firstValueFrom(this.userService.refreshToken(request));
   }
 
@@ -55,12 +59,16 @@ export class AuthClientService implements OnModuleInit {
     return firstValueFrom(this.userService.getUserProfile(request));
   }
 
-  async updateUserProfile(request: UpdateUserProfileRequest): Promise<UserProfile> {
+  async updateUserProfile(
+    request: UpdateUserProfileRequest,
+  ): Promise<UserProfile> {
     return firstValueFrom(this.userService.updateUserProfile(request));
   }
 
   // Auth Service Methods
-  async authenticate(request: AuthenticateRequest): Promise<AuthenticateResponse> {
+  async authenticate(
+    request: AuthenticateRequest,
+  ): Promise<AuthenticateResponse> {
     return firstValueFrom(this.authService.authenticate(request));
   }
 

@@ -1,10 +1,10 @@
 import { Controller } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { UserServiceControllerMethods } from '@app/common';
-import { 
-  RegisterRequest, 
-  RegisterResponse, 
-  LoginRequest, 
+import {
+  RegisterRequest,
+  RegisterResponse,
+  LoginRequest,
   LoginResponse,
   ValidateTokenRequest,
   ValidateTokenResponse,
@@ -12,7 +12,7 @@ import {
   RefreshTokenResponse,
   GetUserProfileRequest,
   UserProfile,
-  UpdateUserProfileRequest
+  UpdateUserProfileRequest,
 } from '@app/common';
 
 @Controller()
@@ -28,11 +28,15 @@ export class UserController {
     return this.userService.login(request);
   }
 
-  async validateToken(request: ValidateTokenRequest): Promise<ValidateTokenResponse> {
+  async validateToken(
+    request: ValidateTokenRequest,
+  ): Promise<ValidateTokenResponse> {
     return this.userService.validateToken(request);
   }
 
-  async refreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> {
     return this.userService.refreshToken(request);
   }
 
@@ -40,7 +44,9 @@ export class UserController {
     return this.userService.getUserProfile(request);
   }
 
-  async updateUserProfile(request: UpdateUserProfileRequest): Promise<UserProfile> {
+  async updateUserProfile(
+    request: UpdateUserProfileRequest,
+  ): Promise<UserProfile> {
     return this.userService.updateUserProfile(request);
   }
 }

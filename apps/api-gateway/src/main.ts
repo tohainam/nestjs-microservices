@@ -4,10 +4,20 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 
+interface RequestWithUser {
+  user?: {
+    userId: string;
+  };
+}
+
+interface ResponseWithData {
+  data?: unknown;
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
   const configService = app.get(ConfigService);
-  
+
   // Enable CORS
   app.enableCors({
     origin: true,
@@ -15,19 +25,22 @@ async function bootstrap() {
   });
 
   // Global validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-    transformOptions: {
-      enableImplicitConversion: true,
-    },
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Authentication API Gateway')
-    .setDescription(`
+    .setDescription(
+      `
       # Authentication API Gateway
 
       This API Gateway provides authentication and user management services through a RESTful API interface.
@@ -76,17 +89,15 @@ async function bootstrap() {
       - Swagger/OpenAPI documentation
       - Docker containerization
       - MongoDB replica set
-    `)
+    `,
+    )
     .setVersion('1.0.0')
     .setContact(
       'Development Team',
       'https://github.com/your-org/auth-service',
-      'dev@yourcompany.com'
+      'dev@yourcompany.com',
     )
-    .setLicense(
-      'MIT',
-      'https://opensource.org/licenses/MIT'
-    )
+    .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addTag('Authentication', 'User authentication and authorization endpoints')
     .addTag('Health', 'Service health monitoring endpoints')
     .addBearerAuth(
@@ -119,11 +130,11 @@ async function bootstrap() {
       defaultModelsExpandDepth: 2,
       defaultModelExpandDepth: 2,
       tryItOutEnabled: true,
-      requestInterceptor: (req) => {
+      requestInterceptor: (req: RequestWithUser): RequestWithUser => {
         // Add any custom request interceptor logic here
         return req;
       },
-      responseInterceptor: (res) => {
+      responseInterceptor: (res: ResponseWithData): ResponseWithData => {
         // Add any custom response interceptor logic here
         return res;
       },
@@ -144,9 +155,13 @@ async function bootstrap() {
 
   const port = configService.getOrThrow<string>('PORT');
   await app.listen(port);
-  
+
   console.log(`🚀 API Gateway is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger documentation available at: http://localhost:${port}/api`);
-  console.log(`🔍 Health check available at: http://localhost:${port}/v1/health`);
+  console.log(
+    `📚 Swagger documentation available at: http://localhost:${port}/api`,
+  );
+  console.log(
+    `🔍 Health check available at: http://localhost:${port}/v1/health`,
+  );
 }
 void bootstrap();

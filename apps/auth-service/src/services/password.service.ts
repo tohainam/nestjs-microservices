@@ -9,11 +9,14 @@ export class PasswordService {
     return bcrypt.hash(password, this.saltRounds);
   }
 
-  async comparePassword(password: string, hashedPassword: string): Promise<boolean> {
+  async comparePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async validatePassword(password: string): Promise<boolean> {
+  validatePassword(password: string): boolean {
     // Basic password validation
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
