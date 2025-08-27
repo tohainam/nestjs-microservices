@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import type { 
@@ -20,13 +20,14 @@ import type {
   RevokeTokenRequest,
   RevokeTokenResponse
 } from '@app/common';
+import { AUTH_SERVICE_NAME } from '@app/common';
 
 @Injectable()
 export class AuthClientService implements OnModuleInit {
   private userService: UserServiceClient;
   private authService: AuthServiceClient;
 
-  constructor(private readonly client: ClientGrpc) {}
+  constructor(@Inject(AUTH_SERVICE_NAME) private readonly client: ClientGrpc) {}
 
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>('UserService');

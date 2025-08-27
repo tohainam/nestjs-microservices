@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
-import { AUTH_PACKAGE_NAME } from '@app/common';
+import { AUTH_PACKAGE_NAME, AUTH_SERVICE_NAME } from '@app/common';
 import { ApiGatewayController } from './api-gateway.controller';
 import { ApiGatewayService } from './api-gateway.service';
 import { AuthController } from './controllers/auth.controller';
@@ -19,7 +19,7 @@ import { AuthClientService } from './services/auth-client.service';
     }),
     ClientsModule.registerAsync([
       {
-        name: AUTH_PACKAGE_NAME,
+        name: AUTH_SERVICE_NAME,
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => ({
           transport: Transport.GRPC,
